@@ -53,6 +53,8 @@ API_KEY = "AIzaSyCcHCB9lx35nurrIOy2KvphPIvmsflB4mE"
 
 from .modules.hashutils import check_pw_hash, make_pw_hash
 
+import threading
+
 class CsrfExemptSessionAuthentication(SessionAuthentication):
 
     def enforce_csrf(self, request):
@@ -308,7 +310,10 @@ def book_time(request):
     if request.method == "POST":
         user_id = int(request.POST["user_id"])
         company_id = int(request.POST["company_id"])
+        service_id = int(request.POST["service_id"])
         password = request.POST["password"]
+        book_time = request.POST["book_time"]
+        date_book_time = datetime.strptime(book_time, '%d-%m-%Y %H:%M')
         
         user = User.objects.filter(id=user_id).first()
         if not user:
@@ -319,19 +324,93 @@ def book_time(request):
         company = Company.objects.filter(id=company_id).first()
         if not company:
             return JsonResponse({"error": "Company not exist!"})
+
+        service = Service.objects.filter(id=service_id).first()
+        if not service:
+            return JsonResponse({"error": "Service not exist!"})
+
         
-        timer = Timer.objects.create(user=user,company=company)
-        timer.end_time = timer.start_time + timedelta(minutes=20)
+        has_places = False
+        for day in service.days.all():
+            if int(day.day) == date_book_time.weekday() and day.start_time < date_book_time.time() and day.end_time > date_book_time.time():
+                has_places = True
+                break
+
+        if not has_places:
+            return JsonResponse({"error": "В это время по этой услуге заниматься нельзя!"})   
+        
+        timer = Timer.objects.create(user=user,company=company, service=service, end_time=date_book_time + timedelta(minutes=20), start_time=date_book_time)
         timer.save()
-        timer.start_timer()
+        download_thread = threading.Thread(target=timer.start_timer, name="start_timer" + str(timer.id))
+        download_thread.start()
 
         return JsonResponse({"success": "Company was booked!"})        
     return JsonResponse({"error": request.method + " method not allowed!"})
 
 @csrf_exempt
-def confirm_book(request, company_id):
+def confirm_book(request):
     if request.method == "POST":
         user_id = int(request.POST["user_id"])
+        company_id = int(request.POST["company_id"])
+        password = request.POST["password"]
+        current_time = request.POST["current_time"]
+        date_current_time = datetime.strptime(current_time, '%d-%m-%Y %H:%M')
+        
+        user = User.objects.filter(id=user_id).first()
+        if not user:
+            return JsonResponse({"error": "Not authorized!"})
+        if not check_pw_hash(password, user.password):
+            return JsonResponse({"error": "Not authorized!"})
+        
+        company = Company.objects.filter(id=company_id).first()
+        if not company:
+            return JsonResponse({"error": "Company not exist!"})
+        
+        book_timers = Timer.objects.filter(user=user, company=company)
+        book_timer = None
+        for timer in book_timers:
+            print(str(timer.start_time))
+            print(str(date_current_time))
+            print(str(timer.end_time))
+            if(timer.start_time - timedelta(minutes=10) <= date_current_time and timer.end_time > date_current_time):
+                book_timer = timer
+                break
+        
+        if not book_timer:
+            if(len(book_timers) > 0):
+                return JsonResponse({"error": "Вы сможете подтвердить бронь только в " + str(book_timers[0].start_time - timedelta(minutes=10))})
+            else:
+                return JsonResponse({"error": "Бронь не найдена!"})
+        elif     not book_timer.is_confirmed:
+            return JsonResponse({"error": "Ваша бронь не подтверждена!"})
+        else:
+            timer = TrainTimer.objects.create(user=user,company=company, service=book_timer.service)
+            timer.save()
+            book_timer.end_timer()
+            book_timer.delete()
+            
+            download_thread = threading.Thread(target=timer.start_timer, name="start_train_timer"+ str(timer.id))
+            download_thread.start()
+
+        return JsonResponse({"success": "Тренировка началась!"})        
+    return JsonResponse({"error": request.method + " method not allowed!"})
+
+@csrf_exempt
+def accept_book(request): # Клуб принял бронь
+    if request.method == "POST":
+        timer_id = int(request.POST["timer_id"])
+        timer = Timer.objects.filter(id=timer_id).first() 
+        timer.is_confirmed = True
+        timer.save()
+
+        return JsonResponse({"success": "Бронь подтверждена!"})        
+    return JsonResponse({"error": request.method + " method not allowed!"})
+
+@csrf_exempt
+def end_train(request):
+    if request.method == "POST":
+        user_id = int(request.POST["user_id"])
+        company_id = int(request.POST["company_id"])
         password = request.POST["password"]
         
         user = User.objects.filter(id=user_id).first()
@@ -344,19 +423,12 @@ def confirm_book(request, company_id):
         if not company:
             return JsonResponse({"error": "Company not exist!"})
         
-        book_timer = Timer.objects.filter(user=user, company=company).first()
-        if not book_timer:
-            return JsonResponse({"error": "Бронь не найдена!"})
+        train_timer = TrainTimer.objects.filter(user=user, company=company).first()
+        price = train_timer.end_timer()
+        train_timer.delete()
 
-        book_timer.end_timer()
-
-        timer = TrainTimer.objects.create(user=user,company=company)
-        timer.save()
-        timer.start_timer()
-
-        return JsonResponse({"success": "Company was booked!"})        
+        return JsonResponse({"success": "Тренировка окончена!", "bill": price})        
     return JsonResponse({"error": request.method + " method not allowed!"})
-
 # @csrf_exempt
 # def add_to_history(request):
 #     if request.method == "POST":

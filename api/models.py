@@ -54,7 +54,6 @@ class Company(models.Model):
     owner = models.ForeignKey(User, on_delete=models.CASCADE, blank=True, null=True)
     address = models.TextField(default='')
     qr_url = models.TextField(default="")
-    qr_code = models.ImageField(upload_to='qr_codes', blank=True, null=True)
     latitude = models.DecimalField(decimal_places=14, max_digits=16, blank=True, null=True)
     longitude = models.DecimalField(decimal_places=14, max_digits=16, blank=True, null=True)
     services = models.ManyToManyField(Service, null=True, blank=True)
@@ -64,23 +63,30 @@ class Company(models.Model):
 class Timer(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE, blank=True, null=True)
     company = models.ForeignKey(Company, on_delete=models.CASCADE, blank=True, null=True)
+    service = models.ForeignKey(Service, on_delete=models.CASCADE, blank=True, null=True)
     start_time = models.DateTimeField(default=datetime.today())
     end_time = models.DateTimeField(null=True, blank=True)
     close_timer = models.BooleanField(default=False)
-
+    is_confirmed = models.BooleanField(default=False)
     def start_timer(self):
         while(not self.close_timer):
             if(self.end_time < datetime.today()):
                 break
-            time.sleep(1)
+            time.sleep(60)
+        print("ТАЙМЕР УНИЧТОЖЕН")
         self.delete()
 
     def end_timer(self):
         self.close_timer = True
+        self.save()
+
+    def __str__(self):
+        return "(" + self.user.phone + ") " + self.company.name + ": " + str(self.end_time)
 
 class TrainTimer(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE, blank=True, null=True)
     company = models.ForeignKey(Company, on_delete=models.CASCADE, blank=True, null=True)
+    service = models.ForeignKey(Service, on_delete=models.CASCADE, blank=True, null=True)
     start_time = models.DateTimeField(default=datetime.today())
     end_time = models.DateTimeField(null=True, blank=True)
     close_timer = models.BooleanField(default=False)
@@ -88,16 +94,18 @@ class TrainTimer(models.Model):
     def start_timer(self):
         count = 0
         while(not self.close_timer):
-            if(self.end_time < datetime.today()):
-                break
             time.sleep(60)
             count += 1
+            print(str(count) + " минуты")
             self.minutes = count
+            self.save()
 
     def end_timer(self):
         self.close_timer = True
-        price = self.minutes * company.price
+        self.save()
+        price = self.minutes * self.service.price
         return price
 
-
+    def __str__(self):
+        return "(" + self.user.phone + ") " + self.company.name + ": " + str(self.start_time)
 

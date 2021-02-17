@@ -6,6 +6,7 @@ import base64
 import six
 import uuid
 from .modules.hashutils import make_pw_hash
+from .modules.functions import get_random_string
 from django.http import Http404, JsonResponse
 import json
 
@@ -155,8 +156,24 @@ class CompanySerializer(serializers.ModelSerializer):
     services = ServiceField(many=True, read_only=False)
     class Meta:
         model = Company
-        fields = [ "id", "name", "owner", "address", "latitude", "longitude", "services"]
+        fields = [ "id", "name", "owner", "address", "latitude", "longitude", "services", "qr_url"]
 
+    def create(self, validated_data):
+        company = Company.objects.create(
+            name=validated_data['name'],
+            owner=validated_data['owner'],
+            address= validated_data['address'],
+            latitude= validated_data['latitude'],
+            longitude= validated_data['longitude'],
+            services= validated_data['services'],
+            
+            )
+        company.qr_url = qr_url = "https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=" + str(company.id)
+        company.save()
+        
+        #user.password = validated_data['password']
+        user.save()
+        return user
 
 class CompanyField(serializers.RelatedField):
     queryset = Company.objects.all()

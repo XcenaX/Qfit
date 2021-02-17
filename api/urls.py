@@ -27,6 +27,11 @@ urlpatterns = [
     # path("get_items/", views.get_items, name="get_items"),
     path("login/", views.login, name="login"),
     path("register/", views.register, name="register"),
+    path("test/", views.test, name="test"),
+    path("book_time/", views.book_time, name="book_time"),
+    path("confirm_book/", views.confirm_book, name="confirm_book"),
+    path("end_train/", views.end_train, name="end_train"),
+    path("accept_book/", views.accept_book, name="accept_book"),
     #path("set_connection_info/", views.set_database_connection_info, name="set_connection_info"),
     
     #path('<str:filepath>/', views.download_file)

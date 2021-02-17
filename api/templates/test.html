@@ -1,0 +1,30 @@
+{%load static%}
+<form action="/book_time/" method="POST">
+    <input type="text" placeholder="Id компании" name="company_id" value="1">
+    <input type="text" placeholder="ID пользователя" name="user_id" value="2">
+    <input type="text" placeholder="ID услуги" name="service_id" value="2">
+    <input type="text" placeholder="Пароль пользователя" name="password" value="12345">
+    <input type="datetime" placeholder="Время на которое нужно забронировать" name="book_time">
+    <button type="submit">TEST бронь</button>
+</form>
+
+<form action="/confirm_book/" method="POST">
+    <input type="text" placeholder="Id компании" name="company_id" value="1">
+    <input type="text" placeholder="ID пользователя" name="user_id" value="2">
+    <input type="text" placeholder="ID услуги" name="service_id" value="2">
+    <input type="text" placeholder="Пароль пользователя" name="password" value="12345">
+    <input type="datetime" placeholder="Текущее время" name="current_time">
+    <button type="submit">TEST начать тренировку</button>
+</form>
+
+<form action="/end_train/" method="POST">
+    <input type="text" placeholder="Id компании" name="company_id" value="1">
+    <input type="text" placeholder="ID пользователя" name="user_id" value="2">
+    <input type="text" placeholder="Пароль пользователя" name="password" value="12345">
+    <button type="submit">TEST окончить тренировку</button>
+</form>
+
+<form action="/accept_book/" method="POST">
+    <input type="text" name="timer_id" placeholder="ID Брони" value="1">
+    <button type="submit">TEST подтвердить бронь (у клубов в админке)</button>
+</form>
