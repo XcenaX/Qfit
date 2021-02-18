@@ -165,15 +165,14 @@ class CompanySerializer(serializers.ModelSerializer):
             address= validated_data['address'],
             latitude= validated_data['latitude'],
             longitude= validated_data['longitude'],
-            services= validated_data['services'],
-            
             )
+        company.services.set(validated_data['services'])
         company.qr_url = qr_url = "https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=" + str(company.id)
         company.save()
         
         #user.password = validated_data['password']
-        user.save()
-        return user
+    
+        return company
 
 class CompanyField(serializers.RelatedField):
     queryset = Company.objects.all()
