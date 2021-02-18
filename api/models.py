@@ -74,7 +74,7 @@ class Timer(models.Model):
                 break
             time.sleep(60)
         print("ТАЙМЕР УНИЧТОЖЕН")
-        self.delete()
+        Timer.objects.filter(id=self.id).first().delete()
 
     def end_timer(self):
         self.close_timer = True
