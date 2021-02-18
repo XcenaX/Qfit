@@ -384,7 +384,7 @@ def confirm_book(request):
         elif     not book_timer.is_confirmed:
             return JsonResponse({"error": "Ваша бронь не подтверждена!"})
         else:
-            timer = TrainTimer.objects.create(user=user,company=company, service=book_timer.service)
+            timer = TrainTimer.objects.create(user=user,company=company, service=book_timer.service, start_time=date_current_time)
             timer.save()
             book_timer.end_timer()
             book_timer.delete()
