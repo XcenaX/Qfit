@@ -63,7 +63,7 @@ class CsrfExemptSessionAuthentication(SessionAuthentication):
 
 class CompanyViewSet(viewsets.ModelViewSet):
     filter_backends = (SearchFilter, DjangoFilterBackend)
-    filter_fields = ["name"]
+    filter_fields = ["name", "services"]
     authentication_classes = [CsrfExemptSessionAuthentication]
     queryset = Company.objects.all()
     serializer_class = CompanySerializer
