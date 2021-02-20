@@ -71,7 +71,8 @@ class FinishedTrain(models.Model):
     start_time = models.DateTimeField(null=True, blank=True)
     end_time = models.DateTimeField(null=True, blank=True)
     bill = models.IntegerField(default=0)
-
+    def __str__(self):
+        return self.user.phone
 
 class Timer(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE, blank=True, null=True)
