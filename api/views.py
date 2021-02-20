@@ -137,6 +137,21 @@ class ServiceViewSet(viewsets.ModelViewSet):
         except:
             raise Http404
 
+class FinishedTrainViewSet(viewsets.ModelViewSet):
+    filter_backends = (SearchFilter, DjangoFilterBackend)
+    filter_fields = ["company", "service", "user", "start_time", "end_time"]
+    authentication_classes = [CsrfExemptSessionAuthentication]
+    queryset = FinishedTrain.objects.all()
+    serializer_class = FinishedTrainSerializer
+
+    def retrieve(self, request, pk=None):
+        queryset = FinishedTrain.objects.all()
+        try:
+            item = FinishedTrain.objects.get(id=pk)
+            serializer = FinishedTrainSerializer(item)
+            return Response(serializer.data)
+        except:
+            raise Http404
 
 @csrf_exempt
 def download_file(request):

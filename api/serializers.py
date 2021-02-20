@@ -143,11 +143,10 @@ class ServiceSerializer(serializers.ModelSerializer):
     
     def create(self, validated_data):   
         days_data = validated_data.pop('days')
-        print(days_data)
         service = Service.objects.create(**validated_data)
         days_list = [] 
         for days_details in days_data:                    
-            days_list.append(Product.objects.filter(id=days_details).first())
+            days_list.append(Schedule.objects.filter(id=days_details).first())
         service.days.add(*days_list)
         return service
 
@@ -194,3 +193,11 @@ class CompanyField(serializers.RelatedField):
             raise serializers.ValidationError(
             'Obj does not exist.'
             )
+
+class FinishedTrainSerializer(serializers.ModelSerializer):    
+    user = UserField(many=False, read_only=False)
+    service = ServiceField(many=False, read_only=False)
+    company = CompanyField(many=False, read_only=False)
+    class Meta:
+        model = Service
+        fields = ("id", "user", "company", "service", "minutes", "start_time", "end_time", "bill")

@@ -16,6 +16,10 @@ DAYS_OF_WEEK = (
 )
 
 
+
+
+
+
 class Role(models.Model):
     name = models.TextField(default='') 
 
@@ -28,7 +32,6 @@ class User(models.Model):
     role = models.ForeignKey(Role, on_delete=models.CASCADE, blank=True, null=True)
     def __str__(self):
         return self.phone
-
 
 class Schedule(models.Model):
     start_time = models.TimeField(null=True, blank=True)
@@ -60,6 +63,16 @@ class Company(models.Model):
     def __str__(self):
         return self.name
 
+class FinishedTrain(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE, blank=True, null=True)
+    company = models.ForeignKey(Company, on_delete=models.CASCADE, blank=True, null=True)
+    service = models.ForeignKey(Service, on_delete=models.CASCADE, blank=True, null=True)
+    minutes = models.IntegerField(default=0)
+    start_time = models.DateTimeField(null=True, blank=True)
+    end_time = models.DateTimeField(null=True, blank=True)
+    bill = models.IntegerField(default=0)
+
+
 class Timer(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE, blank=True, null=True)
     company = models.ForeignKey(Company, on_delete=models.CASCADE, blank=True, null=True)
@@ -73,7 +86,6 @@ class Timer(models.Model):
             if(self.end_time < datetime.today()):
                 break
             time.sleep(60)
-        print("ТАЙМЕР УНИЧТОЖЕН")
         Timer.objects.filter(id=self.id).first().delete()
 
     def end_timer(self):
@@ -96,7 +108,6 @@ class TrainTimer(models.Model):
         while(not self.close_timer):
             time.sleep(60)
             count += 1
-            print(str(count) + " минуты")
             self.minutes = count
             self.save()
 
@@ -104,8 +115,11 @@ class TrainTimer(models.Model):
         self.close_timer = True
         self.save()
         price = self.minutes * self.service.price
+        finished_train = FinishedTrain.objects.create(start_time=self.start_time, end_time=self.end_time, company=self.company, service=self.service, minutes=self.minutes, bill=price, user=self.user)
+        finished_train.save()
         return price
 
     def __str__(self):
         return "(" + self.user.phone + ") " + self.company.name + ": " + str(self.start_time)
+
 
