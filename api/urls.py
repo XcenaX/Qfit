@@ -16,6 +16,7 @@ router.register(r'roles', RoleViewSet)
 router.register(r'services', ServiceViewSet)
 router.register(r'schedules', ScheduleViewSet)
 router.register(r'finished_trains', FinishedTrainViewSet)
+router.register(r'images', MyImageViewSet)
 
 
 urlpatterns = [

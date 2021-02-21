@@ -153,6 +153,20 @@ class FinishedTrainViewSet(viewsets.ModelViewSet):
         except:
             raise Http404
 
+class MyImageViewSet(viewsets.ModelViewSet):
+    authentication_classes = [CsrfExemptSessionAuthentication]
+    queryset = MyImage.objects.all()
+    serializer_class = MyImageSerializer
+
+    def retrieve(self, request, pk=None):
+        queryset = MyImage.objects.all()
+        try:
+            item = MyImage.objects.get(id=pk)
+            serializer = MyImageSerializer(item)
+            return Response(serializer.data)
+        except:
+            raise Http404
+
 @csrf_exempt
 def download_file(request):
     fl_path = '/file/path'
@@ -384,9 +398,6 @@ def confirm_book(request):
         book_timers = Timer.objects.filter(user=user, company=company)
         book_timer = None
         for timer in book_timers:
-            print(str(timer.start_time))
-            print(str(date_current_time))
-            print(str(timer.end_time))
             if(timer.start_time - timedelta(minutes=10) <= date_current_time and timer.end_time > date_current_time):
                 book_timer = timer
                 break

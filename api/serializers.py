@@ -38,11 +38,37 @@ class RoleSerializer(serializers.ModelSerializer):
         fields = ("id", "name")
 
 
+class MyImageSerializer(serializers.ModelSerializer):    
+    class Meta:
+        model = MyImage
+        fields = ("id", "image")
+
+class MyImageField(serializers.RelatedField):
+    queryset = MyImage.objects.all()
+    def to_representation(self, value):
+        return value.id
+    def to_internal_value(self, data):
+        try:
+            try:
+                return MyImage.objects.get(id=data)
+            except KeyError:
+                raise serializers.ValidationError(
+                    'id is a required field.'
+                )
+            except ValueError:
+                raise serializers.ValidationError(
+                    'id must be an integer.'
+                )
+        except Type.DoesNotExist:
+            raise serializers.ValidationError(
+            'Obj does not exist.'
+            )
+
 class UserSerializer(serializers.ModelSerializer):
     role = RoleField(many=False, read_only=False)
     class Meta:
         model = User
-        fields = ("id", "password", "role", "phone")
+        fields = ("id", "password", "role", "phone", "avatar")
     
     def create(self, validated_data):
         try:
@@ -137,9 +163,10 @@ class ServiceField(serializers.RelatedField):
 
 class ServiceSerializer(serializers.ModelSerializer):    
     days = ScheduleField(many=True, read_only=False)
+    images = MyImageField(many=True, read_only=False)
     class Meta:
         model = Service
-        fields = ("id", "price", "name", "description", "days", "limit_people")
+        fields = ("id", "price", "name", "description", "days", "limit_people", "images")
     
     def create(self, validated_data):   
         days_data = validated_data.pop('days')

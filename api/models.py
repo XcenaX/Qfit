@@ -4,6 +4,7 @@ from django.utils import timezone
 import os
 from datetime import date, datetime
 import time
+from datetime import timedelta
 
 DAYS_OF_WEEK = (
     (0, 'Понедельник'),
@@ -30,6 +31,7 @@ class User(models.Model):
     phone = models.TextField(default='')
     password = models.TextField(default='')
     role = models.ForeignKey(Role, on_delete=models.CASCADE, blank=True, null=True)
+    avatar = models.ImageField(upload_to='avatars', blank=True, null=True)
     def __str__(self):
         return self.phone
 
@@ -43,12 +45,18 @@ class Schedule(models.Model):
         
         return day + ": " + str(self.start_time) + " - " + str(self.end_time)
 
+class MyImage(models.Model):
+    image = models.ImageField(upload_to='services', blank=True, null=True)
+    def __str__(self):
+        return self.image.name
+
 class Service(models.Model):
     price = models.IntegerField(default=0)
     name = models.TextField(default='')
     description = models.TextField(default='')
     days = models.ManyToManyField(Schedule, null=True, blank=True)
     limit_people = models.IntegerField(default=0)
+    images = models.ManyToManyField(MyImage, null=True, blank=True)
     def __str__(self):
         return self.name
 
@@ -116,7 +124,7 @@ class TrainTimer(models.Model):
         self.close_timer = True
         self.save()
         price = self.minutes * self.service.price
-        finished_train = FinishedTrain.objects.create(start_time=self.start_time, end_time=self.end_time, company=self.company, service=self.service, minutes=self.minutes, bill=price, user=self.user)
+        finished_train = FinishedTrain.objects.create(start_time=self.start_time, end_time=self.start_time + timedelta(minutes=self.minutes), company=self.company, service=self.service, minutes=self.minutes, bill=price, user=self.user)
         finished_train.save()
         return price
 
