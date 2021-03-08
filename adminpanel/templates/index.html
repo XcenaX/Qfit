@@ -85,6 +85,7 @@
             // do whatever required with received data ...
         };
         ticksSocket.onerror = function(event) {
+            console.log(event);
             var data = JSON.parse(event.data);
             console.log('data', data);
             
