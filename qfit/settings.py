@@ -32,6 +32,7 @@ ALLOWED_HOSTS = ["*"]
 
 INSTALLED_APPS = [
     'api.apps.ApiConfig',
+    'adminpanel.apps.AdminpanelConfig',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -40,6 +41,7 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'rest_framework',
     "django_filters",
+    "channels",
 ]
 
 MIDDLEWARE = [
@@ -53,6 +55,7 @@ MIDDLEWARE = [
 ]
 
 ROOT_URLCONF = 'qfit.urls'
+ASGI_APPLICATION = "adminpanel.routing.application"
 
 TEMPLATES = [
     {
@@ -71,6 +74,22 @@ TEMPLATES = [
 ]
 
 WSGI_APPLICATION = 'qfit.wsgi.application'
+
+# redis_host = os.environ.get('REDIS_HOST', 'localhost')
+# CHANNEL_LAYERS = {
+#     "default": {
+#         "BACKEND": "channels_redis.core.RedisChannelLayer",
+#         "CONFIG": {
+#             "hosts": [(redis_host, 6379)],
+#         },
+#     },
+# }
+
+CHANNEL_LAYERS = {
+    "default": {
+        "BACKEND": "channels.layers.InMemoryChannelLayer"
+    }
+}
 
 REST_FRAMEWORK = {
     'DATETIME_FORMAT': "%m/%d/%Y %H:%M:",
@@ -129,7 +148,7 @@ CORS_ORIGIN_ALLOW_ALL = True
 CORS_ALLOW_CREDENTIALS = True
 
 STATIC_URL = '/static/'
-STATIC_ROOT = "/home/qfit/Qfit/static/"
+#STATIC_ROOT = "/home/qfit/Qfit/static/"
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 MEDIA_URL = '/media/'
 

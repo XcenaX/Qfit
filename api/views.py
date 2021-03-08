@@ -45,6 +45,9 @@ from datetime import timedelta
 from datetime import datetime, date
 API_KEY = "AIzaSyCcHCB9lx35nurrIOy2KvphPIvmsflB4mE"
 
+from adminpanel.modules.functions import broadcast_ticks, get_current_user
+from .modules.functions import check_image_type, check_timelines
+
 #import googlemaps
 
 # import mysql.connector
@@ -124,7 +127,7 @@ class ScheduleViewSet(viewsets.ModelViewSet):
 
 class ServiceViewSet(viewsets.ModelViewSet):
     filter_backends = (SearchFilter, DjangoFilterBackend)
-    filter_fields = ["name", "price", "id"]
+    filter_fields = ["name", "id"]
     queryset = Service.objects.all()
     serializer_class = ServiceSerializer
     authentication_classes = [CsrfExemptSessionAuthentication]
@@ -163,6 +166,29 @@ class MyImageViewSet(viewsets.ModelViewSet):
         try:
             item = MyImage.objects.get(id=pk)
             serializer = MyImageSerializer(item)
+            return Response(serializer.data)
+        except:
+            raise Http404
+    
+    def destroy(self, request, *args, **kwargs):
+        try:
+            instance = self.get_object()
+
+            self.perform_destroy(instance)
+        except Http404:
+            pass
+        return Response(status=status.HTTP_204_NO_CONTENT)
+
+class TimeLineViewSet(viewsets.ModelViewSet):
+    authentication_classes = [CsrfExemptSessionAuthentication]
+    queryset = TimeLine.objects.all()
+    serializer_class = TimeLineSerializer
+
+    def retrieve(self, request, pk=None):
+        queryset = TimeLine.objects.all()
+        try:
+            item = TimeLine.objects.get(id=pk)
+            serializer = TimeLineSerializer(item)
             return Response(serializer.data)
         except:
             raise Http404
@@ -372,7 +398,15 @@ def book_time(request):
         timer.save()
         download_thread = threading.Thread(target=timer.start_timer, name="start_timer" + str(timer.id))
         download_thread.start()
-
+        broadcast_ticks({
+            "new_book": True,
+            "timer_id": timer.id,
+            "timer_start": str(timer.start_time),
+            "timer_end": str(timer.end_time),
+            "timer_service": timer.service.name,
+            "timer_user": timer.user.phone,
+            "company_id": timer.company.id,
+        })
         return JsonResponse({"success": "Company was booked!"})        
     return JsonResponse({"error": request.method + " method not allowed!"})
 
@@ -413,12 +447,19 @@ def confirm_book(request):
             timer = TrainTimer.objects.create(user=user,company=company, service=book_timer.service, start_time=date_current_time)
             timer.save()
             book_timer.end_timer()
-            book_timer.delete()
+            #book_timer.delete()
             
             download_thread = threading.Thread(target=timer.start_timer, name="start_train_timer"+ str(timer.id))
             download_thread.start()
-
-        return JsonResponse({"success": "Тренировка началась!"})        
+            broadcast_ticks({
+                "new_timer": True,
+                "timer_id": timer.id,
+                "timer_start": str(timer.start_time),
+                "timer_service": timer.service.name,
+                "timer_user": timer.user.phone,
+                "company_id": timer.company.id,
+            })
+            return JsonResponse({"success": "Тренировка началась!"})        
     return JsonResponse({"error": request.method + " method not allowed!"})
 
 @csrf_exempt
@@ -426,9 +467,33 @@ def accept_book(request): # Клуб принял бронь
     if request.method == "POST":
         timer_id = int(request.POST["timer_id"])
         timer = Timer.objects.filter(id=timer_id).first() 
+        if not timer:
+            return JsonResponse({"success": "Такой брони уже не существует!"})     
         timer.is_confirmed = True
         timer.save()
+        broadcast_ticks({
+            "company_id": timer.company.id,
+            "accept_book": True,
+            "service": timer.service.name,
+            "start_time": str(timer.start_time),
+            "end_time": str(timer.end_time),
+            "user": timer.user.phone,
+            "timer_id": timer_id,
+        })
+        return JsonResponse({"success": "Бронь подтверждена!"})        
+    return JsonResponse({"error": request.method + " method not allowed!"})
 
+@csrf_exempt
+def decline_book(request): # Клуб отклонил бронь
+    if request.method == "POST":
+        timer_id = int(request.POST["timer_id"])
+        timer = Timer.objects.filter(id=timer_id).first() 
+        timer.delete()
+        broadcast_ticks({
+            "company_id": timer.company.id,
+            "decline_book": True,
+            "timer_id": timer_id,
+        })
         return JsonResponse({"success": "Бронь подтверждена!"})        
     return JsonResponse({"error": request.method + " method not allowed!"})
 
@@ -450,10 +515,105 @@ def end_train(request):
             return JsonResponse({"error": "Company not exist!"})
         
         train_timer = TrainTimer.objects.filter(user=user, company=company).first()
+        finished_train = FinishedTrain.objects.create(start_time=train_timer.start_time, end_time=train_timer.end_time, user=user, company=company, service=train_timer.service, minutes=train_timer.minutes)
+        train_timer.close_timer = True
+        train_timer.save()
         price = train_timer.end_timer()
-        train_timer.delete()
+        finished_train.bill = price
+        finished_train.save()
+        broadcast_ticks({
+            "new_history": True,
+            "phone": finished_train.user.phone,
+            "service": finished_train.service.name,
+            "start_time": datetime.strptime(finished_train.start_time, '%d-%m-%Y %H:%M'),
+            "end_time": datetime.strptime(finished_train.end_time, '%d-%m-%Y %H:%M'),
+            "minutes": finished_train.minutes,
+            "bill": finished_train.bill,
+            "history_id": finished_train.id,
+        })
 
         return JsonResponse({"success": "Тренировка окончена!", "bill": price})        
+    return JsonResponse({"error": request.method + " method not allowed!"})
+
+@csrf_exempt
+def update_schedules(request):
+    if request.method == "POST":
+        schedules_json = request.POST["schedules"]
+        schedules = json.loads(schedules_json)
+        service_id = int(request.POST["service"])
+        print(service_id)
+        service = Service.objects.get(id=service_id)
+        service.name = request.POST["name"]
+        service.description = request.POST["description"]
+        service.save()
+        if not check_timelines(schedules):
+            return JsonResponse({"error": "Нельзя накладывать время занятия друг на друга!"})
+        for schedule in schedules:
+            current_schedule = service.days.all().filter(day=schedule["day"]).first()
+            for timeline in schedule["timelines"]:
+                print(timeline)
+                print(current_schedule.timelines.all())
+                db_timeline = TimeLine.objects.filter(id=timeline["id"]).first()
+                print(db_timeline)
+                if db_timeline:
+                    start_time = datetime.strptime(timeline["start_time"], '%H:%M')
+                    end_time = datetime.strptime(timeline["end_time"], '%H:%M')
+                    
+                    db_timeline.price = timeline["price"]
+                    db_timeline.start_time = start_time
+                    db_timeline.end_time = end_time
+                    db_timeline.limit_people = timeline["limit_people"]
+                    db_timeline.save()
+            current_schedule.save()
+        return JsonResponse({"success": "NICE BOY!"})
+         
+    return JsonResponse({"error": request.method + " method not allowed!"})
+
+@csrf_exempt
+def add_timeline(request):
+    if request.method == "POST":
+        schedule_id = request.POST["schedule"]
+        schedule = Schedule.objects.get(id=schedule_id)
+        
+        new_timeline = TimeLine.objects.create()
+        schedule.timelines.add(new_timeline)
+        schedule.save()
+        print(str(new_timeline.start_time))
+        return JsonResponse({"id": new_timeline.id, "start_time": str(new_timeline.start_time)[:-3], "end_time": str(new_timeline.end_time)[:-3], "limit_people": new_timeline.limit_people, "price": new_timeline.price})
+    return JsonResponse({"error": request.method + " method not allowed!"})
+
+
+
+
+@csrf_exempt
+def add_image(request):
+    if request.method == "POST":
+        image = request.FILES["image"]
+        service_id = request.POST["service"]
+        if(check_image_type(image)):
+            model_image = MyImage.objects.create(image=image)
+            model_image.save()
+            service = Service.objects.get(id=service_id)
+            service.images.add(model_image)
+            service.save()
+            return JsonResponse({"image": model_image.image.url, "id": model_image.id})
+        else:
+            upload_error = "Выберите .jpg или .png формат!" 
+            return JsonResponse({"error": upload_error})
+         
+    return JsonResponse({"error": request.method + " method not allowed!"})
+
+@csrf_exempt
+def add_service(request):
+    if request.method == "POST":
+        service_id = request.POST["service"]
+        user = get_current_user(request)
+        service = Service.objects.get(id=service_id)
+        user.company.services.add(service)
+        user.save()
+        
+        return JsonResponse({"success":True})
+         
     return JsonResponse({"error": request.method + " method not allowed!"})
 # @csrf_exempt
 # def add_to_history(request):
@@ -463,9 +623,9 @@ def end_train(request):
 #     return JsonResponse({"error": request.method + " method not allowed!"})
 
 
-# @receiver(pre_delete, sender=Item)
-# def item_delete(sender, instance, **kwargs):
-#     instance.image.delete(False)
+@receiver(pre_delete, sender=MyImage)
+def item_delete(sender, instance, **kwargs):
+    instance.image.delete(False)
 
 # @receiver(pre_delete, sender=Document)
 # def document_delete(sender, instance, **kwargs):

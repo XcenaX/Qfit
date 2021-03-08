@@ -1,0 +1,94 @@
+{% extends "base.html" %}
+{% load static %}
+
+{%block styles %}
+    
+{% endblock %}
+
+{%block main%}active{%endblock%}
+
+{% block content %}
+	
+        <div class="wrap">
+            <div class="content-title">
+                Список людей
+            </div>
+            <div class="content-under-title">
+                {{company.name}}
+            </div>
+            <div class="scrollable">
+                <table id="table">
+                    <tr class="head">
+                    <th>Телефон</th>
+                    <th>Время старта</th>
+                    <th>Услуга</th>
+                    <th>Таймер</th>
+                    </tr>
+                    {%if not timers%}
+                        <tr>
+                            <td colspan="4">В данный момент никто не занимается</td>
+                        </tr>
+                    {%endif%}
+                    {%for timer in timers%}
+                        <tr id="timer{{timer.id}}">
+                            <td>{{timer.user.phone}}</td>
+                            <td>{{timer.start_time|date:'Y-m-d H:i'}}</td>
+                            <td>{{timer.service.name}}</td>
+                            <td id="timer_minutes{{timer.id}}">{{timer.minutes}} минуты</td>
+                        </tr>
+                    {%endfor%}
+                </table>
+            </div>
+        </div>
+    
+    
+{% endblock %}
+
+{%block scripts%}
+    <script language="javascript">
+        var ws_url = 'ws://' + window.location.host + '/ws/timers/';
+        var ticksSocket = new WebSocket(ws_url);
+
+        ticksSocket.onmessage = function(event) {
+            var data = JSON.parse(event.data);
+            if({{current_user.company.id}} == data["company_id"]){
+                if(data["minutes"] != null){
+                    tr = $("#timer_minutes"+data["id"])[0];
+                    if(tr){
+                        tr.innerText = data["minutes"] + " минут";
+                    }
+                }
+                if(data["finished_train_id"] != null){
+                    tr = $("#timer"+ data["delete_id"]);
+                    tr.remove();
+                    if($("tr").length == 1){
+                        const empty_tr = document.createElement("tr");
+                        empty_tr.innerHTML = `<td colspan="4">В данный момент никто не занимается</td>`;
+                        document.getElementById('table').appendChild(empty_tr);
+                    }
+                }
+                if(data["new_timer"] != null){
+                    const tr = document.createElement('tr');
+
+                    tr.id = 'timer' + data["timer_id"];
+                    tr.innerHTML = `
+                    <td>`+data["timer_user"]+`</td>
+                    <td>`+data["timer_start"].slice(0, -3)+`</td>
+                    <td>`+data["timer_service"]+`</td>
+                    <td id="timer_minutes`+data["timer_id"]+`">0 минут</td>
+                    `;
+
+                    document.getElementById('table').appendChild(tr);
+                }
+            }
+           
+            // do whatever required with received data ...
+        };
+        ticksSocket.onerror = function(event) {
+            var data = JSON.parse(event.data);
+            console.log('data', data);
+            
+        };
+    </script>
+{%endblock%}
+

@@ -17,6 +17,7 @@ router.register(r'services', ServiceViewSet)
 router.register(r'schedules', ScheduleViewSet)
 router.register(r'finished_trains', FinishedTrainViewSet)
 router.register(r'images', MyImageViewSet)
+router.register(r'timelines', TimeLineViewSet)
 
 
 urlpatterns = [
@@ -34,6 +35,11 @@ urlpatterns = [
     path("confirm_book/", views.confirm_book, name="confirm_book"),
     path("end_train/", views.end_train, name="end_train"),
     path("accept_book/", views.accept_book, name="accept_book"),
+    path("decline_book/", views.decline_book, name="decline_book"),
+    path("update_schedules/", views.update_schedules, name="update_schedules"),
+    path("add_image/", views.add_image, name="add_image"),
+    path("add_service/", views.add_service, name="add_service"),
+    path("add_timeline/", views.add_timeline, name="add_timeline"),
     #path("set_connection_info/", views.set_database_connection_info, name="set_connection_info"),
     
     #path('<str:filepath>/', views.download_file)

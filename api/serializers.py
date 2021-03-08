@@ -134,10 +134,16 @@ class ScheduleField(serializers.RelatedField):
             'Obj does not exist.'
             )
 
+class TimeLineSerializer(serializers.ModelSerializer):     
+    class Meta:
+        model = TimeLine
+        fields = ("id", "price", "limit_people", "start_time", "end_time")
+
 class ScheduleSerializer(serializers.ModelSerializer):    
+    timelines = TimeLineSerializer(many=True, read_only=False, required=False)
     class Meta:
         model = Schedule
-        fields = ("id", "start_time", "end_time", "day")
+        fields = ("id", "day", "get_cutted_name", "get_fullname", "timelines")
 
 
 class ServiceField(serializers.RelatedField):
@@ -162,18 +168,17 @@ class ServiceField(serializers.RelatedField):
             )
 
 class ServiceSerializer(serializers.ModelSerializer):    
-    days = ScheduleField(many=True, read_only=False)
-    images = MyImageField(many=True, read_only=False)
+    days = ScheduleSerializer(many=True, read_only=False, required=False)
+    images = MyImageSerializer(many=True, read_only=False, required=False)
     class Meta:
         model = Service
-        fields = ("id", "price", "name", "description", "days", "limit_people", "images")
+        fields = ("id", "name", "description", "days", "images")
     
     def create(self, validated_data):   
-        days_data = validated_data.pop('days')
         service = Service.objects.create(**validated_data)
         days_list = [] 
-        for days_details in days_data:                    
-            days_list.append(Schedule.objects.filter(id=days_details).first())
+        for count in range(0,7):                    
+            days_list.append(Schedule.objects.create(day=count))
         service.days.add(*days_list)
         return service
 
