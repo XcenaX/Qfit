@@ -24,10 +24,10 @@ class TimersConsumer(WebsocketConsumer):
     def timers_message(self, event):
         self.send(text_data=event["content"])
 
-from channels import Group
+# from channels import Group
 
-def websocket_receive(message):
-    text = message.content.get('text')
-    if text:
-        Group("anything").add(message.reply_channel)
-        message.reply_channel.send({"text": "You said: {}".format(text)})
+# def websocket_receive(message):
+#     text = message.content.get('text')
+#     if text:
+#         Group("anything").add(message.reply_channel)
+#         message.reply_channel.send({"text": "You said: {}".format(text)})

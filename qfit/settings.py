@@ -178,6 +178,7 @@ CORS_ALLOW_CREDENTIALS = True
 
 STATIC_URL = '/static/'
 #STATIC_ROOT = "/home/c/cp70116/Qfit/static/"
+STATIC_ROOT = os.path.join(BASE_DIR, 'static')
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 MEDIA_URL = '/media/'
 
