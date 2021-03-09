@@ -1,18 +1,17 @@
-"""
-ASGI config for qfit project.
+# import os
 
-It exposes the ASGI callable as a module-level variable named ``application``.
+# from django.core.asgi import get_asgi_application
 
-For more information on this file, see
-https://docs.djangoproject.com/en/3.1/howto/deployment/asgi/
-"""
+# os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'qfit.settings')
+
+# application = get_asgi_application()
+
 
 import os
+from channels.asgi import get_channel_layer
 
-from django.core.asgi import get_asgi_application
+os.environ.setdefault("DJANGO_SETTINGS_MODULE", "qfit.settings")
 
-os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'qfit.settings')
-
-application = get_asgi_application()
+channel_layer = get_channel_layer()
 
 
