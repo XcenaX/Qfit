@@ -100,13 +100,23 @@ WSGI_APPLICATION = 'qfit.wsgi.application'
 #     },
 # }
 
+# CHANNEL_LAYERS = {
+#     "default": {
+#         "BACKEND": "asgi_redis.RedisChannelLayer",
+#         "CONFIG": {
+#             "hosts": [("redis://redis:6379/1", 6379)],
+#         },
+#         "ROUTING": "adminpanel.routing.channel_routing",
+#     },
+# }
+
 CHANNEL_LAYERS = {
     "default": {
         "BACKEND": "asgi_redis.RedisChannelLayer",
         "CONFIG": {
-            "hosts": [("redis://redis:6379/1", 6379)],
+            "hosts": [os.environ.get('REDIS_URL', 'redis://localhost:6379')],
         },
-        "ROUTING": "adminpanel.routing.channel_routing",
+        "ROUTING": "chat.routing.channel_routing",
     },
 }
 
@@ -167,7 +177,7 @@ CORS_ORIGIN_ALLOW_ALL = True
 CORS_ALLOW_CREDENTIALS = True
 
 STATIC_URL = '/static/'
-STATIC_ROOT = "/home/c/cp70116/Qfit/static/"
+#STATIC_ROOT = "/home/c/cp70116/Qfit/static/"
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 MEDIA_URL = '/media/'
 
