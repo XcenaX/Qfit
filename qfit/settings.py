@@ -185,7 +185,7 @@ STATICFILES_DIRS = (
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 MEDIA_URL = '/media/'
 
-#
+
 EMAIL_HOST = "smtp.gmail.com"
 EMAIL_HOST_USER = "digital.portfolio.ru@gmail.com"
 EMAIL_HOST_PASSWORD = 'Dagad582#'
