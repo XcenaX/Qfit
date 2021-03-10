@@ -116,7 +116,7 @@ CHANNEL_LAYERS = {
         "CONFIG": {
             "hosts": [os.environ.get('REDIS_URL', 'redis://localhost:6379')],
         },
-        "ROUTING": "adminpanel.routing.application",
+        "ROUTING": "adminpanel.routing.channel_routing",
     },
 }
 
