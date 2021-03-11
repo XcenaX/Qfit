@@ -116,7 +116,6 @@ CHANNEL_LAYERS = {
         "CONFIG": {
             "hosts": [os.environ.get('REDIS_URL')],
         },
-        'ROUTING': 'adminpanel.routing.application',
     },
 }
 
