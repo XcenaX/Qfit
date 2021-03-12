@@ -11,7 +11,7 @@
     width: 70%;
     height: 95px;
     margin: 26px auto;
-    background-image: url("/static/img/logo_full.png");
+    background-image: url("/static/img/logo_full.PNG");
     background-size: cover;
     background-repeat: no-repeat;
 }
