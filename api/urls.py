@@ -9,6 +9,8 @@ import os
 from django.contrib.staticfiles.urls import staticfiles_urlpatterns
 from .views import *
 
+from rest_framework_simplejwt import views as jwt_views
+
 router = routers.SimpleRouter()
 router.register(r'companies', CompanyViewSet)
 router.register(r'users', UserViewSet)
@@ -40,6 +42,8 @@ urlpatterns = [
     path("add_image/", views.add_image, name="add_image"),
     path("add_service/", views.add_service, name="add_service"),
     path("add_timeline/", views.add_timeline, name="add_timeline"),
+    path('token/', jwt_views.TokenObtainPairView.as_view(), name='token_obtain_pair'),
+    path('token/refresh/', jwt_views.TokenRefreshView.as_view(), name='token_refresh'),
     #path("set_connection_info/", views.set_database_connection_info, name="set_connection_info"),
     
     #path('<str:filepath>/', views.download_file)
