@@ -46,7 +46,7 @@
 
 {%block scripts%}
     <script language="javascript">
-        var ws_scheme = "ws://"//window.location.protocol == "https:" ? "wss" : "ws";
+        var ws_scheme = "wss://"//window.location.protocol == "https:" ? "wss" : "ws";
         //var chat_socket = new ReconnectingWebSocket(ws_scheme + '://' + window.location.host + "/chat" + window.location.pathname);
         var ws_url = ws_scheme + window.location.host + '/ws/timers/';
         var ticksSocket = new WebSocket(ws_url);
