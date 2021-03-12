@@ -380,16 +380,17 @@ def book_time(request):
         if not company:
             return JsonResponse({"error": "Company not exist!"})
 
-        service = Service.objects.filter(id=service_id).first()
-        if not service:
-            return JsonResponse({"error": "Service not exist!"})
-
-        
+        services = company.services.all()
+        service = None
         has_places = False
-        for day in service.days.all():
-            if int(day.day) == date_book_time.weekday() and day.start_time < date_book_time.time() and day.end_time > date_book_time.time():
-                has_places = True
-                break
+        for current_service in services:
+            for day in current_service.days.all():
+                if int(day.day) == date_book_time.weekday():
+                    for timeline in day.timelines.all():
+                        if timeline.start_time < date_book_time.time() and timeline.end_time > date_book_time.time():
+                            has_places = True
+                            service = current_service
+                            break
 
         if not has_places:
             return JsonResponse({"error": "В это время по этой услуге заниматься нельзя!"})   
