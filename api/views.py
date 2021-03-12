@@ -67,7 +67,7 @@ class CsrfExemptSessionAuthentication(SessionAuthentication):
 class CompanyViewSet(viewsets.ModelViewSet):
     filter_backends = (SearchFilter, DjangoFilterBackend)
     filter_fields = ["name", "services"]
-    authentication_classes = [CsrfExemptSessionAuthentication]
+    authentication_classes = [CsrfExemptSessionAuthentication, BasicAuthentication]
     queryset = Company.objects.all()
     serializer_class = CompanySerializer
 
@@ -84,7 +84,7 @@ class CompanyViewSet(viewsets.ModelViewSet):
 class UserViewSet(viewsets.ModelViewSet):
     filter_backends = (SearchFilter, DjangoFilterBackend)
     filter_fields = ["phone", "role"]
-    authentication_classes = [CsrfExemptSessionAuthentication]
+    authentication_classes = [CsrfExemptSessionAuthentication, BasicAuthentication]
     queryset = User.objects.all()
     serializer_class = UserSerializer
 
@@ -101,7 +101,7 @@ class UserViewSet(viewsets.ModelViewSet):
 class RoleViewSet(viewsets.ModelViewSet):
     queryset = Role.objects.all()
     serializer_class = RoleSerializer
-    authentication_classes = [CsrfExemptSessionAuthentication]
+    authentication_classes = [CsrfExemptSessionAuthentication, BasicAuthentication]
     def retrieve(self, request, pk=None):
         queryset = Role.objects.all()
         try:
@@ -115,7 +115,7 @@ class RoleViewSet(viewsets.ModelViewSet):
 class ScheduleViewSet(viewsets.ModelViewSet):
     queryset = Schedule.objects.all()
     serializer_class = ScheduleSerializer
-    authentication_classes = [CsrfExemptSessionAuthentication]
+    authentication_classes = [CsrfExemptSessionAuthentication, BasicAuthentication]
     def retrieve(self, request, pk=None):
         queryset = Schedule.objects.all()
         try:
@@ -130,7 +130,7 @@ class ServiceViewSet(viewsets.ModelViewSet):
     filter_fields = ["name", "id"]
     queryset = Service.objects.all()
     serializer_class = ServiceSerializer
-    authentication_classes = [CsrfExemptSessionAuthentication]
+    authentication_classes = [CsrfExemptSessionAuthentication, BasicAuthentication]
     def retrieve(self, request, pk=None):
         queryset = Service.objects.all()
         try:
@@ -143,7 +143,7 @@ class ServiceViewSet(viewsets.ModelViewSet):
 class FinishedTrainViewSet(viewsets.ModelViewSet):
     filter_backends = (SearchFilter, DjangoFilterBackend)
     filter_fields = ["company", "service", "user", "start_time", "end_time"]
-    authentication_classes = [CsrfExemptSessionAuthentication]
+    authentication_classes = [CsrfExemptSessionAuthentication, BasicAuthentication]
     queryset = FinishedTrain.objects.all()
     serializer_class = FinishedTrainSerializer
 
@@ -157,7 +157,7 @@ class FinishedTrainViewSet(viewsets.ModelViewSet):
             raise Http404
 
 class MyImageViewSet(viewsets.ModelViewSet):
-    authentication_classes = [CsrfExemptSessionAuthentication]
+    authentication_classes = [CsrfExemptSessionAuthentication, BasicAuthentication]
     queryset = MyImage.objects.all()
     serializer_class = MyImageSerializer
 
@@ -180,7 +180,7 @@ class MyImageViewSet(viewsets.ModelViewSet):
         return Response(status=status.HTTP_204_NO_CONTENT)
 
 class TimeLineViewSet(viewsets.ModelViewSet):
-    authentication_classes = [CsrfExemptSessionAuthentication]
+    authentication_classes = [CsrfExemptSessionAuthentication, BasicAuthentication]
     queryset = TimeLine.objects.all()
     serializer_class = TimeLineSerializer
 
