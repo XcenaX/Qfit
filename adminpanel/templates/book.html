@@ -25,7 +25,7 @@
                   <th>Статус</th>
                 </tr>
                 {%if not current_timers%}
-                    <tr>
+                    <tr id="no_book">
                         <td colspan="5">В данный момент нет броней!</td>
                     </tr>
                 {%endif%}
@@ -116,7 +116,7 @@
                     document.getElementById('table_accepted').appendChild(tr);
                 }
                 if(data["new_book"] != null){
-                    if($("#table_current tr").length == 2){
+                    if($("#empty_tr")[0] != null){
                         empty_tr = $("#empty_tr");
                         empty_tr.remove();
                     }

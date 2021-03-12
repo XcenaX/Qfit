@@ -25,7 +25,7 @@
                     <th>Таймер</th>
                     </tr>
                     {%if not timers%}
-                        <tr>
+                        <tr id="no_train">
                             <td colspan="4">В данный момент никто не занимается</td>
                         </tr>
                     {%endif%}
@@ -65,11 +65,17 @@
                     tr.remove();
                     if($("tr").length == 1){
                         const empty_tr = document.createElement("tr");
+                        empty_tr.id = "no_train";
                         empty_tr.innerHTML = `<td colspan="4">В данный момент никто не занимается</td>`;
                         document.getElementById('table').appendChild(empty_tr);
                     }
                 }
                 if(data["new_timer"] != null){
+                    if($("#no_train")[0] != null){
+                        empty_tr = $("#no_train");
+                        empty_tr.remove();
+                    }
+                    
                     const tr = document.createElement('tr');
 
                     tr.id = 'timer' + data["timer_id"];
