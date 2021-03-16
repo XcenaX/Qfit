@@ -21,6 +21,7 @@ router.register(r'finished_trains', FinishedTrainViewSet)
 router.register(r'images', MyImageViewSet)
 router.register(r'timelines', TimeLineViewSet)
 
+from rest_framework.authtoken import views as api_views
 
 urlpatterns = [
     url(r'^', include(router.urls)),
@@ -42,8 +43,9 @@ urlpatterns = [
     path("add_image/", views.add_image, name="add_image"),
     path("add_service/", views.add_service, name="add_service"),
     path("add_timeline/", views.add_timeline, name="add_timeline"),
-    path('token/', jwt_views.TokenObtainPairView.as_view(), name='token_obtain_pair'),
-    path('token/refresh/', jwt_views.TokenRefreshView.as_view(), name='token_refresh'),
+    path('token/', api_views.obtain_auth_token, name='api-token-auth'),
+    #path('token/', jwt_views.TokenObtainPairView.as_view(), name='token_obtain_pair'),
+    #path('token/refresh/', jwt_views.TokenRefreshView.as_view(), name='token_refresh'),
     #path("set_connection_info/", views.set_database_connection_info, name="set_connection_info"),
     
     #path('<str:filepath>/', views.download_file)
