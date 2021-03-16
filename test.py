@@ -1,11 +1,8 @@
-import requests
+import string
+import random
+import time
 
-url = "https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=https://google.com"
-data = {    
-    "user_id": 2,
-    "company_id": 1,
-    "password": "12345",
-    "service_id": 2,
-}
-r = requests.post(url, data=data)
-print(r.text)
+for i in range(0,1000):
+    random_digit = int(''.join(random.choice(string.digits) for i in range(2)))
+    print ( ''.join(random.choice(string.ascii_lowercase) for i in range(random_digit)) )
+    time.sleep(random.choice([0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9]))
