@@ -8,6 +8,10 @@ from datetime import timedelta
 from adminpanel.models import *
 from adminpanel.modules.functions import broadcast_ticks
 
+
+import string    
+import random
+
 DAYS_OF_WEEK = (
     (0, 'Понедельник'),
     (1, 'Вторник'),
@@ -34,8 +38,19 @@ class User(models.Model):
     password = models.TextField(default='')
     role = models.ForeignKey(Role, on_delete=models.CASCADE, blank=True, null=True)
     avatar = models.ImageField(upload_to='avatars', blank=True, null=True)
+    ref_code = models.TextField(default="")
     def __str__(self):
         return self.phone
+    
+    def generate_ref_code(self):
+        ref_code_length = 8
+        code_unique = False
+        while not code_unique:
+            ran = ''.join(random.choices(string.ascii_uppercase + string.digits, k = ref_code_length))
+            if len(User.objects.filter(ref_code=ran))==0:
+                code_unique = True
+        self.ref_code = ran
+        self.save()
 
 class TimeLine(models.Model):
     start_time = models.TimeField(default=datetime.strptime("00:00", "%H:%M"))

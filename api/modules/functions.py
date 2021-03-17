@@ -26,3 +26,5 @@ def check_timelines(schedules):
                     if another_start_time < start_time and another_end_time > start_time or another_start_time < end_time and another_end_time > end_time or another_end_time == end_time or another_start_time == start_time or another_end_time <= another_start_time or end_time <= start_time or another_start_time > start_time and another_end_time < end_time:
                         return False
     return True
+
+

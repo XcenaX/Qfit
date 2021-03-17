@@ -68,7 +68,7 @@ class UserSerializer(serializers.ModelSerializer):
     role = RoleField(many=False, read_only=False)
     class Meta:
         model = User
-        fields = ("id", "password", "role", "phone", "avatar")
+        fields = ("id", "password", "role", "phone", "avatar", "ref_code")
     
     def create(self, validated_data):
         try:
@@ -84,7 +84,7 @@ class UserSerializer(serializers.ModelSerializer):
             password = make_pw_hash(validated_data['password'],
             )
         )
-        #user.password = validated_data['password']
+        user.generate_ref_code()
         user.save()
         return user
 
@@ -231,5 +231,5 @@ class FinishedTrainSerializer(serializers.ModelSerializer):
     service = ServiceField(many=False, read_only=False)
     company = CompanyField(many=False, read_only=False)
     class Meta:
-        model = Service
+        model = FinishedTrain
         fields = ("id", "user", "company", "service", "minutes", "start_time", "end_time", "bill")
