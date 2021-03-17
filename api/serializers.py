@@ -233,3 +233,19 @@ class FinishedTrainSerializer(serializers.ModelSerializer):
     class Meta:
         model = FinishedTrain
         fields = ("id", "user", "company", "service", "minutes", "start_time", "end_time", "bill")
+
+class TimerSerializer(serializers.ModelSerializer):    
+    user = UserField(many=False, read_only=False)
+    service = ServiceField(many=False, read_only=False)
+    company = CompanyField(many=False, read_only=False)
+    class Meta:
+        model = Timer
+        fields = ("id", "user", "company", "service", "start_time", "end_time", "is_confirmed")
+
+class TrainTimerSerializer(serializers.ModelSerializer):    
+    user = UserField(many=False, read_only=False)
+    service = ServiceField(many=False, read_only=False)
+    company = CompanyField(many=False, read_only=False)
+    class Meta:
+        model = TrainTimer
+        fields = ("id", "user", "company", "service", "start_time", "end_time", "minutes")

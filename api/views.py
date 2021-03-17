@@ -195,6 +195,34 @@ class TimeLineViewSet(viewsets.ModelViewSet):
         except:
             raise Http404
 
+class TimerViewSet(viewsets.ModelViewSet):
+    permission_classes = (IsAuthenticated,)
+    queryset = Timer.objects.all()
+    serializer_class = TimerSerializer
+
+    def retrieve(self, request, pk=None):
+        queryset = Timer.objects.all()
+        try:
+            item = Timer.objects.get(id=pk)
+            serializer = TimerSerializer(item)
+            return Response(serializer.data)
+        except:
+            raise Http404
+
+class TrainTimerViewSet(viewsets.ModelViewSet):
+    permission_classes = (IsAuthenticated,)
+    queryset = TrainTimer.objects.all()
+    serializer_class = TrainTimerSerializer
+
+    def retrieve(self, request, pk=None):
+        queryset = TrainTimer.objects.all()
+        try:
+            item = TrainTimer.objects.get(id=pk)
+            serializer = TrainTimerSerializer(item)
+            return Response(serializer.data)
+        except:
+            raise Http404
+
 @csrf_exempt
 def download_file(request):
     fl_path = '/file/path'
