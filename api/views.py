@@ -85,7 +85,7 @@ class CompanyViewSet(viewsets.ModelViewSet):
 
 class UserViewSet(viewsets.ModelViewSet):
     filter_backends = (SearchFilter, DjangoFilterBackend)
-    filter_fields = ["phone", "role", "ref_code"]
+    filter_fields = ["phone", "role", "ref_code", "bonuses"]
     permission_classes = (IsAuthenticated,)
     queryset = User.objects.all()
     serializer_class = UserSerializer

@@ -68,7 +68,7 @@ class UserSerializer(serializers.ModelSerializer):
     role = RoleField(many=False, read_only=False)
     class Meta:
         model = User
-        fields = ("id", "password", "role", "phone", "avatar", "ref_code")
+        fields = ("id", "password", "role", "phone", "avatar", "ref_code", "bonuses")
     
     def create(self, validated_data):
         try:
