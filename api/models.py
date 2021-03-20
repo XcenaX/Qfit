@@ -39,6 +39,7 @@ class User(models.Model):
     role = models.ForeignKey(Role, on_delete=models.CASCADE, blank=True, null=True)
     avatar = models.ImageField(upload_to='avatars', blank=True, null=True)
     ref_code = models.TextField(default="")
+    bonuses = models.IntegerField(default=0)
     def __str__(self):
         return self.phone
     
