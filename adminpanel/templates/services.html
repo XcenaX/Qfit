@@ -19,7 +19,22 @@
             <div class="scrollable-services" id="services">
                 {%for service in services%}
                     <div class="service-block" id="service{{service.id}}">
-                        <input class="service-title" id="name{{service.id}}" maxlength="20" disabled value="{{service.name}}" placeholder="{{service.name}}">
+                        <select disabled class="service-title" id="name{{service.id}}">
+                            {%if service.category%}
+                                <option value="{{service.category.id}}">{{service.category.name}}</option>
+                                {%for service_category in service_categories%}
+                                    {%if service_category.id != service.category.id%}
+                                        <option value="{{service_category.id}}">{{service_category.name}}</option>
+                                    {%endif%}
+                                {%endfor%}
+                            {%else%}
+                                <option value="empty">Выберите услугу</option>
+                                {%for service_category in service_categories%}                    
+                                    <option value="{{service_category.id}}">{{service_category.name}}</option>                                    
+                                {%endfor%}
+                            {%endif%}
+                        </select>
+                        
                         <div role="img" class="trash" id="trash{{service.id}}" onclick="remove({{service.id}})" title="Удалить"></div>
                         <div role="img" class="edit" id="edit{{service.id}}"  onclick="edit({{service.id}})" title="Редактировать"></div>
                         <div role="img" class="arrow" id="arrow{{service.id}}" onclick="drop({{service.id}})" title="Показать больше"></div>
@@ -201,11 +216,13 @@
                         "day": day_of_week,
                     })
                 }
-                console.log(all_schedules);
+                console.log(service_name.value);
+                token = get_token();
                 $.ajax({
                     url: "/api/update_schedules/", 
                     type: "POST",
-                    data: {"schedules":JSON.stringify(all_schedules), "service": id, "name": service_name.value, "description": description.value},
+                    data: {"schedules":JSON.stringify(all_schedules), "service": id, "category": service_name.value, "description": description.value},
+                    headers: {"Authorization": "Token "+token},
                     success: function(data){
                         if(data["error"]){
                             alertify.error(data["error"], 5);
@@ -237,9 +254,11 @@
         }
 
         function remove(id){
+            token = get_token();
             $.ajax({
                 url: "/api/services/"+id+"/", 
                 type: "DELETE",
+                headers: {"Authorization": "Token "+token},
                 success: function(data){
                     service_block = $("#service"+id)[0];
                     service_block.remove();
@@ -247,13 +266,13 @@
                 }
             });
         }
-
+        token = get_token();
         function add_service(){
             $.ajax({
                 url: "/api/services/", 
                 type: "POST",
+                headers: {"Authorization": "Token "+token},
                 data: {
-                    "name": "Новая услуга",
                     "description": "Описание",
                 },
                 success: function(data){
@@ -262,7 +281,8 @@
 
                     days_block = ``;
                     places = ``;
-                    console.log(days);
+                    service_categories = ``;
+                    
                     for(var i = days.length-1; i >= 0; i--){
                         
                         days_block += `
@@ -293,7 +313,22 @@
                     service_block.classList.add("service-block");
                     service_block.id = "service"+data["id"];
                     service_block.innerHTML = `
-                        <input class="service-title" id="name`+data["id"]+`" maxlength="20" disabled value="`+data["name"]+`" placeholder="`+data["name"]+`">
+                        
+                        <select disabled class="service-title" id="name`+data["id"]+`">
+                            {%if service.company%}
+                                <option value="{{service.category.id}}">{{service.category.name}}</option>
+                                {%for service_category in service_categories%}
+                                    {%if service_category.id != service.category.id%}
+                                        <option value="{{service_category.id}}">{{service_category.name}}</option>
+                                    {%endif%}
+                                {%endfor%}
+                            {%else%}
+                                <option value="empty">Выберите услугу</option>
+                                {%for service_category in service_categories%}                    
+                                    <option value="{{service_category.id}}">{{service_category.name}}</option>                                    
+                                {%endfor%}
+                            {%endif%}
+                        </select>
                         <div role="img" class="trash" id="trash`+data["id"]+`" onclick="remove(`+data["id"]+`)" title="Удалить"></div>
                         <div role="img" class="edit" id="edit`+data["id"]+`"  onclick="edit(`+data["id"]+`)" title="Редактировать"></div>
                         <div role="img" class="arrow" id="arrow`+data["id"]+`" onclick="drop(`+data["id"]+`)" title="Показать больше"></div>
@@ -325,11 +360,12 @@
                             </div>                            
                         </div>
                     `;
-                    
+                    token = get_token();
                     $.ajax({
                         url: "/api/add_service/", 
                         type: "POST",
                         data: {"service": data["id"]},
+                        headers: {"Authorization": "Token "+token},
                         success: function(data){
                             alertify.success("Услуга добавлена!", 4);
                         }
@@ -347,10 +383,12 @@
             $('#images'+service).submit(function(e){
                 e.preventDefault();
                 var formData = new FormData(this);
+                token = get_token();
                 $.ajax({
                     url: "/api/add_image/", 
                     type: "POST",
                     data: formData,
+                    headers: {"Authorization": "Token "+token},
                     success: function(data){
                         console.log(data);
                         if(data["error"]){
@@ -379,9 +417,11 @@
         }
 
         function delete_image(image, service){
+            token = get_token();
             $.ajax({
                 url: "/api/images/"+image+"/", 
                 type: "DELETE",
+                headers: {"Authorization": "Token "+token},
                 success: function(data){
                     image = $("#image"+image)[0];
                     image.remove();
@@ -436,9 +476,11 @@
         }
 
         function add_timeline(schedule, service){
+            token = get_token();
             $.ajax({
                 url: "/api/add_timeline/", 
                 type: "POST",
+                headers: {"Authorization": "Token "+token},
                 data: {
                     "schedule": schedule
                 },
@@ -468,9 +510,12 @@
         }
 
         function delete_timeline(timeline){
+            token = get_token();
+            console.log(token);
             $.ajax({
                 url: "/api/timelines/"+timeline+"/", 
                 type: "DELETE",
+                headers: {"Authorization": "Token "+token},
                 success: function(data){
                     current_timeline = $("#current_timeline"+timeline);
                     current_timeline.remove();

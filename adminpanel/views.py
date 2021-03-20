@@ -47,7 +47,8 @@ def login(request):
                 "companies": Company.objects.all()
             })
         user = users.first()
-        if check_pw_hash(password, user.password):
+        #if check_pw_hash(password, user.password):
+        if password == user.password:
             request.session["user"] = user.id
             request.session["company"] = user.company.id
             return redirect(reverse("adminpanel:index"))
@@ -108,11 +109,13 @@ def services(request):
         return redirect(reverse("adminpanel:login"))
     company = user.company
     services = company.services.all()
+    service_categories = ServiceCategory.objects.all()
     return render(request, "services.html", {
         "current_user": user,
         "company": company,
         "services": services,
         "days_of_week": DAYS_OF_WEEK,
+        "service_categories": service_categories,
     })
 
 def book(request):

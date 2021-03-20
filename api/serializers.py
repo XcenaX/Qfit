@@ -167,12 +167,23 @@ class ServiceField(serializers.RelatedField):
             'Obj does not exist.'
             )
 
+class ServiceCategorySerializer(serializers.ModelSerializer):    
+    class Meta:
+        model = ServiceCategory
+        fields = ("id", "name")
+
 class ServiceSerializer(serializers.ModelSerializer):    
-    days = ScheduleSerializer(many=True, read_only=False, required=False)
+    #days = ScheduleSerializer(many=True, read_only=False, required=False, )
+    days = serializers.SerializerMethodField("get_days")
     images = MyImageSerializer(many=True, read_only=False, required=False)
+
+    def get_days(self, instance):
+        days = instance.days.all().order_by("day")
+        return ScheduleSerializer(days, many=True, read_only=-False, required=False).data
+
     class Meta:
         model = Service
-        fields = ("id", "name", "description", "days", "images")
+        fields = ("id", "category", "description", "days", "images")
     
     def create(self, validated_data):   
         service = Service.objects.create(**validated_data)

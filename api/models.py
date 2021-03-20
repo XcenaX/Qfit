@@ -105,13 +105,21 @@ class MyImage(models.Model):
     def __str__(self):
         return self.image.name
 
-class Service(models.Model):
+class ServiceCategory(models.Model):
     name = models.TextField(default='')
+    def __str__(self):
+        return self.name
+
+class Service(models.Model):
+    category = models.ForeignKey(ServiceCategory, on_delete=models.CASCADE, blank=True, null=True)
     description = models.TextField(default='')
     days = models.ManyToManyField(Schedule, null=True, blank=True)
     images = models.ManyToManyField(MyImage, null=True, blank=True)
     def __str__(self):
-        return self.name
+        return self.category
+
+    # def days(self, model):
+    #     return  model.days.all().order_by('day')
 
 class Company(models.Model):
     name = models.TextField(default='') 

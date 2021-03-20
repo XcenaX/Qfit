@@ -129,7 +129,7 @@ class ScheduleViewSet(viewsets.ModelViewSet):
 
 class ServiceViewSet(viewsets.ModelViewSet):
     filter_backends = (SearchFilter, DjangoFilterBackend)
-    filter_fields = ["name", "id"]
+    filter_fields = ["category", "id"]
     queryset = Service.objects.all()
     serializer_class = ServiceSerializer
     permission_classes = (IsAuthenticated,)
@@ -197,6 +197,8 @@ class TimeLineViewSet(viewsets.ModelViewSet):
 
 class TimerViewSet(viewsets.ModelViewSet):
     permission_classes = (IsAuthenticated,)
+    filter_backends = (SearchFilter, DjangoFilterBackend)
+    filter_fields = ["company", "service", "user", "start_time"]
     queryset = Timer.objects.all()
     serializer_class = TimerSerializer
 
@@ -223,6 +225,20 @@ class TrainTimerViewSet(viewsets.ModelViewSet):
         except:
             raise Http404
 
+class ServiceCategoryViewSet(viewsets.ModelViewSet):
+    permission_classes = (IsAuthenticated,)
+    queryset = ServiceCategory.objects.all()
+    serializer_class = ServiceCategorySerializer
+
+    def retrieve(self, request, pk=None):
+        queryset = ServiceCategory.objects.all()
+        try:
+            item = ServiceCategory.objects.get(id=pk)
+            serializer = ServiceCategorySerializer(item)
+            return Response(serializer.data)
+        except:
+            raise Http404
+
 @csrf_exempt
 def download_file(request):
     fl_path = '/file/path'
@@ -234,97 +250,10 @@ def download_file(request):
     response['Content-Disposition'] = "attachment; filename=%s" % filename
     return response
 
-@csrf_exempt
-def fill_document(request):
-    if request.method == "POST":
-        item_id = request.POST["id"]
-        if not item_id: 
-            return JsonResponse({"error": "Parameter id is required!"})
-        item = Purchased_Item.objects.filter(id=item_id).first()
-        if not item:
-            error = "Item with id=" + item_id + " not found!"
-            return JsonResponse({"error": error})
-        
-        font = ImageFont.truetype( BASE_DIR + '//media//fonts//cmunss.ttf', 35)
 
-        img = Image.open(BASE_DIR + "//media//dogovor.jpg").convert("RGB")
-
-        draw = ImageDraw.Draw(img)
-        draw.text((135, 415), item.item.provider.company.name, (0,0,0), font=font)
-        draw.text((254, 1307), str(item.get_total_price()) + "тг", (0,0,0), font=font)
-        draw.text((374, 1535), item.item.name, (0,0,0), font=font)
-        draw.text((234, 1595), str(item.count) + " едениц", (0,0,0), font=font)
-
-        absolute_path = BASE_DIR + "//media//dogovors//" + str(item.id) + ".jpg"
-        img.save(absolute_path)
-
-        document_path = "media/dogovors/" + str(item.id) + ".pdf"
-
-        item.document.image = document_path
-        item.document.save()
-        return FileResponse(open(absolute_path, 'rb'), content_type='application/png')
-    return JsonResponse({"error": "Only POST method is allowed!"})
-
-@csrf_exempt
-def fill_waybill(request):
-    if request.method == "POST":
-        order_id = request.POST["id"]
-        if not order_id: 
-            return JsonResponse({"error": "Parameter id is required!"})
-        order = Order.objects.filter(id=order_id).first()
-        if not order:
-            error = "Order with id=" + order_id + " not found!"
-            return JsonResponse({"error": error})
-        
-        font = ImageFont.truetype( BASE_DIR + '//media//fonts//cmunss.ttf', 25)
-
-        img = Image.open(BASE_DIR + "//media//nakladnaya.jpg").convert("RGB")
-
-        draw = ImageDraw.Draw(img)
-        draw.text((590, 125), str(order.id), (0,0,0), font=font)
-        draw.text((50, 350), "1", (0,0,0), font=font)
-        draw.text((120, 350), order.item.name, (0,0,0), font=font)
-        draw.text((480, 350), str(order.count), (0,0,0), font=font)
-        draw.text((570, 350), str(order.item.price) + " тг", (0,0,0), font=font)
-        draw.text((700, 350), str(order.get_total_price()) + " тг", (0,0,0), font=font)
-        draw.text((130, 165), order.client_name, (0,0,0), font=font)
-
-        absolute_path = BASE_DIR + "//media//waybills//" + str(order.id) + ".jpg"
-        img.save(absolute_path)
-
-        document_path = "media/waybills/" + str(order.id) + ".pdf"
-        if not order.document:
-            order.document = Document.objects.create()
-        order.document.image = document_path
-        order.document.save()
-        return FileResponse(open(absolute_path, 'rb'), content_type='application/png')
-    return JsonResponse({"error": "Only POST method is allowed!"})
 
 def test(request):
     return render(request, "test.html", {})
-
-@csrf_exempt
-def set_status(request):
-    if request.method == "POST":
-        item_to_buy_id = request.POST["id"]
-        
-        if not item_to_buy_id:
-            return JsonResponse({"error": "id parameter required!"})
-        item = Purchased_Item.objects.filter(id=item_to_buy_id).first()
-        
-        if not item:
-            return JsonResponse("Item with id not found!")
-        if item.status is True:
-            return JsonResponse({"error": "This item is already delivered!"})
-        item.status = True
-        item.save()
-
-        new_item = Item.objects.create(name=item.item.name, item_type=item.item.item_type, receive_date=datetime.now(), provider=item.item.provider, price=item.item.price, count=item.count, image=item.item.image)
-        new_item.save()
-
-        return JsonResponse({"success": True})
-
-    return JsonResponse({"error": request.method + " method not allowed!"})
 
 
 @csrf_exempt
@@ -434,7 +363,7 @@ def book_time(request):
             "timer_id": timer.id,
             "timer_start": str(timer.start_time),
             "timer_end": str(timer.end_time),
-            "timer_service": timer.service.name,
+            "timer_service": timer.service.category.name,
             "timer_user": timer.user.phone,
             "company_id": timer.company.id,
         })
@@ -486,7 +415,7 @@ def confirm_book(request):
                 "new_timer": True,
                 "timer_id": timer.id,
                 "timer_start": str(timer.start_time),
-                "timer_service": timer.service.name,
+                "timer_service": timer.service.category.name,
                 "timer_user": timer.user.phone,
                 "company_id": timer.company.id,
             })
@@ -505,7 +434,7 @@ def accept_book(request): # Клуб принял бронь
         broadcast_ticks({
             "company_id": timer.company.id,
             "accept_book": True,
-            "service": timer.service.name,
+            "service": timer.service.category.name,
             "start_time": str(timer.start_time),
             "end_time": str(timer.end_time),
             "user": timer.user.phone,
@@ -555,7 +484,7 @@ def end_train(request):
         broadcast_ticks({
             "new_history": True,
             "phone": finished_train.user.phone,
-            "service": finished_train.service.name,
+            "service": finished_train.service.category.name,
             "start_time": datetime.strptime(finished_train.start_time, '%d-%m-%Y %H:%M'),
             "end_time": datetime.strptime(finished_train.end_time, '%d-%m-%Y %H:%M'),
             "minutes": finished_train.minutes,
@@ -572,9 +501,9 @@ def update_schedules(request):
         schedules_json = request.POST["schedules"]
         schedules = json.loads(schedules_json)
         service_id = int(request.POST["service"])
-        print(service_id)
         service = Service.objects.get(id=service_id)
-        service.name = request.POST["name"]
+        category_id = int(request.POST["category"])
+        service.category = ServiceCategory.objects.get(id=category_id)
         service.description = request.POST["description"]
         service.save()
         if not check_timelines(schedules):
@@ -582,10 +511,8 @@ def update_schedules(request):
         for schedule in schedules:
             current_schedule = service.days.all().filter(day=schedule["day"]).first()
             for timeline in schedule["timelines"]:
-                print(timeline)
-                print(current_schedule.timelines.all())
                 db_timeline = TimeLine.objects.filter(id=timeline["id"]).first()
-                print(db_timeline)
+                
                 if db_timeline:
                     start_time = datetime.strptime(timeline["start_time"], '%H:%M')
                     end_time = datetime.strptime(timeline["end_time"], '%H:%M')
