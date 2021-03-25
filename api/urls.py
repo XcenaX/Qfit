@@ -46,6 +46,7 @@ urlpatterns = [
     path("add_image/", views.add_image, name="add_image"),
     path("add_service/", views.add_service, name="add_service"),
     path("add_timeline/", views.add_timeline, name="add_timeline"),
+    path("submit_form/", views.submit_form, name="submit_form"),
     path('token/', api_views.obtain_auth_token, name='api-token-auth'),
     #path('token/', jwt_views.TokenObtainPairView.as_view(), name='token_obtain_pair'),
     #path('token/refresh/', jwt_views.TokenRefreshView.as_view(), name='token_refresh'),

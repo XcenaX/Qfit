@@ -28,3 +28,14 @@
     <input type="text" name="timer_id" placeholder="ID Брони" value="1">
     <button type="submit">TEST подтвердить бронь (у клубов в админке)</button>
 </form>
+
+<form action="/api/submit_form/" method="POST">
+    <input type="text" name="club_name" placeholder="Имя клуба" value="">
+    <input type="text" name="description" placeholder="Описание" value="">
+    <input type="text" name="city" placeholder="Город" value="">
+    <input type="checkbox" name="has_optional_services" placeholder="Есть ли доп услуги">
+    <input type="text" name="optional_services" placeholder="Услуги" value="">
+    <input type="text" name="phone" placeholder="телефон" value="">
+    <input type="text" name="email" placeholder="Почта" value="">
+    <button type="submit">Сохранить форму</button>
+</form>

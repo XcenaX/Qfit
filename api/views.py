@@ -28,6 +28,8 @@ from django.dispatch.dispatcher import receiver
 
 from urllib.request import urlopen
 
+from django.template.loader import render_to_string
+
 import requests
 
 #from .filters import FoundItemFilter
@@ -38,6 +40,8 @@ from django.views.decorators.csrf import csrf_exempt
 
 from tempfile import NamedTemporaryFile
 import mimetypes
+
+from api.modules.sendEmail import send_email
 
 from django.http import HttpResponse, FileResponse
 
@@ -557,6 +561,41 @@ def add_service(request):
         
         return JsonResponse({"success":True})
          
+    return JsonResponse({"error": request.method + " method not allowed!"})
+
+
+@csrf_exempt
+def submit_form(request):
+    if request.method == "POST":
+        club_name = request.POST["club_name"]
+        description = request.POST["description"]
+        city = request.POST["city"]
+        
+        has_optional_services = request.POST["has_optional_services"]
+        has_optional_services_str = "Нет"
+        if(has_optional_services == "on"):
+            has_optional_services_str = "Да"
+
+        optional_services = request.POST["optional_services"]
+        phone = request.POST["phone"]
+        email = request.POST["email"]
+
+        mail_subject = "Заявка на регистрацию клуба"
+        message = render_to_string('submit_form_message.html', {
+            'club_name': club_name,
+            'description': description,
+            'city': city,
+            'has_optional_services': has_optional_services_str,
+            "optional_services": optional_services,
+            "phone": phone,
+            "email": email,
+        })
+        
+
+        send_email(message, mail_subject, settings.EMAIL_HOST_USER)
+        
+        return JsonResponse({"success": True}) 
+
     return JsonResponse({"error": request.method + " method not allowed!"})
 # @csrf_exempt
 # def add_to_history(request):
