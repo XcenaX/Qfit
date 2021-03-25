@@ -590,7 +590,7 @@ def submit_form(request):
         })
         
 
-        #send_email(message, mail_subject, settings.EMAIL_HOST_USER)
+        send_email(message, mail_subject, settings.EMAIL_HOST_USER)
         
         return JsonResponse({"success": True}) 
 
