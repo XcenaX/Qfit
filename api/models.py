@@ -35,8 +35,7 @@ class Role(models.Model):
 
 class User(models.Model):
     phone = models.TextField(default='')
-    password = models.TextField(default='')
-    role = models.ForeignKey(Role, on_delete=models.CASCADE, blank=True, null=True)
+    role = models.ForeignKey(Role, on_delete=models.CASCADE, blank=True, null=True, default=Role.objects.get(name="user").id)
     avatar = models.ImageField(upload_to='avatars', blank=True, null=True)
     ref_code = models.TextField(default="")
     bonuses = models.IntegerField(default=0)

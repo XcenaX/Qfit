@@ -68,7 +68,7 @@ class UserSerializer(serializers.ModelSerializer):
     role = RoleField(many=False, read_only=False)
     class Meta:
         model = User
-        fields = ("id", "password", "role", "phone", "avatar", "ref_code", "bonuses")
+        fields = ("id", "role", "phone", "avatar", "ref_code", "bonuses")
     
     def create(self, validated_data):
         try:
@@ -81,8 +81,6 @@ class UserSerializer(serializers.ModelSerializer):
         user = User.objects.create(
             role=validated_data['role'],
             phone=validated_data['phone'],
-            password = make_pw_hash(validated_data['password'],
-            )
         )
         user.generate_ref_code()
         user.save()
@@ -211,8 +209,6 @@ class CompanySerializer(serializers.ModelSerializer):
         company.services.set(validated_data['services'])
         company.qr_url = qr_url = "https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=" + str(company.id)
         company.save()
-        
-        #user.password = validated_data['password']
     
         return company
 

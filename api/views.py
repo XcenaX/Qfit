@@ -281,14 +281,11 @@ def get_coords(request):
 @csrf_exempt
 def register(request):
     if request.method == "POST":
-        role_id = request.POST.get("role")
-        role = Role.objects.filter(id=role_id).first()
         phone = request.POST["phone"]
-        password = request.POST["password"]
 
         if len(User.objects.filter(phone=phone)) > 0:
             return JsonResponse({"error": "User with this phone already exist!"})
-        user = User.objects.create(phone=phone, role=role, password=make_pw_hash(password))
+        user = User.objects.create(phone=phone)
         user.save()
         return JsonResponse({"success": True}) 
 
@@ -299,24 +296,21 @@ def register(request):
 def login(request):
     if request.method == "POST":
         phone = request.POST["phone"]
-        password = request.POST["password"]
         users = User.objects.filter(phone=phone)
         if len(users) == 0:
-            return JsonResponse({"error": "User with this phone doesn't exist!"})
+            return JsonResponse({"error": "Неверный номер телефона!"})        
         user = users.first()
         
-        if check_pw_hash(password, user.password):
-            return JsonResponse({
-                "success": True,
-                "user":{
-                    "id": user.id,
-                    "phone": user.phone,
-                    "role_id": user.role.id,
-                    "role": user.role.name,
-                    "password": user.password,
-                },
-            }) 
-        return JsonResponse({"error": "Incorrect phone or password!"})        
+        return JsonResponse({
+            "success": True,
+            "user":{
+                "id": user.id,
+                "phone": user.phone,
+                "role_id": user.role.id,
+                "role": user.role.name,
+            },
+        }) 
+        
     return JsonResponse({"error": request.method + " method not allowed!"})
 
 @csrf_exempt
@@ -325,14 +319,11 @@ def book_time(request):
         user_id = int(request.POST["user_id"])
         company_id = int(request.POST["company_id"])
         service_id = int(request.POST["service_id"])
-        password = request.POST["password"]
         book_time = request.POST["book_time"]
         date_book_time = datetime.strptime(book_time, '%d-%m-%Y %H:%M')
         
         user = User.objects.filter(id=user_id).first()
         if not user:
-            return JsonResponse({"error": "Not authorized!"})
-        if not check_pw_hash(password, user.password):
             return JsonResponse({"error": "Not authorized!"})
         
         company = Company.objects.filter(id=company_id).first()
@@ -375,14 +366,11 @@ def confirm_book(request):
     if request.method == "POST":
         user_id = int(request.POST["user_id"])
         company_id = int(request.POST["company_id"])
-        password = request.POST["password"]
         current_time = request.POST["current_time"]
         date_current_time = datetime.strptime(current_time, '%d-%m-%Y %H:%M')
         
         user = User.objects.filter(id=user_id).first()
         if not user:
-            return JsonResponse({"error": "Not authorized!"})
-        if not check_pw_hash(password, user.password):
             return JsonResponse({"error": "Not authorized!"})
         
         company = Company.objects.filter(id=company_id).first()
@@ -462,12 +450,9 @@ def end_train(request):
     if request.method == "POST":
         user_id = int(request.POST["user_id"])
         company_id = int(request.POST["company_id"])
-        password = request.POST["password"]
         
         user = User.objects.filter(id=user_id).first()
         if not user:
-            return JsonResponse({"error": "Not authorized!"})
-        if not check_pw_hash(password, user.password):
             return JsonResponse({"error": "Not authorized!"})
         
         company = Company.objects.filter(id=company_id).first()
