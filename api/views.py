@@ -570,11 +570,9 @@ def submit_form(request):
         club_name = request.POST["club_name"]
         description = request.POST["description"]
         city = request.POST["city"]
-        
+        #<input type="checkbox" name="has_optional_services" placeholder="Есть ли доп услуги">
+
         has_optional_services = request.POST["has_optional_services"]
-        has_optional_services_str = "Нет"
-        if(has_optional_services == "on"):
-            has_optional_services_str = "Да"
 
         optional_services = request.POST["optional_services"]
         phone = request.POST["phone"]
@@ -585,14 +583,14 @@ def submit_form(request):
             'club_name': club_name,
             'description': description,
             'city': city,
-            'has_optional_services': has_optional_services_str,
+            'has_optional_services': has_optional_services,
             "optional_services": optional_services,
             "phone": phone,
             "email": email,
         })
         
 
-        send_email(message, mail_subject, settings.EMAIL_HOST_USER)
+        #send_email(message, mail_subject, settings.EMAIL_HOST_USER)
         
         return JsonResponse({"success": True}) 
 
