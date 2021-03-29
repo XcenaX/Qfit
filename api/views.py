@@ -351,8 +351,7 @@ def book_time(request):
         
         timer = Timer.objects.create(user=user,company=company, service=service, end_time=date_book_time + timedelta(minutes=20), start_time=date_book_time)
         timer.save()
-        download_thread = threading.Thread(target=timer.start_timer, name="start_timer" + str(timer.id))
-        download_thread.start()
+        
         broadcast_ticks({
             "new_book": True,
             "timer_id": timer.id,
@@ -393,16 +392,14 @@ def confirm_book(request):
                 return JsonResponse({"error": "Вы сможете подтвердить бронь только в " + str(book_timers[0].start_time - timedelta(minutes=10))})
             else:
                 return JsonResponse({"error": "Бронь не найдена!"})
-        elif     not book_timer.is_confirmed:
+        elif not book_timer.is_confirmed:
             return JsonResponse({"error": "Ваша бронь не подтверждена!"})
         else:
             timer = TrainTimer.objects.create(user=user,company=company, service=book_timer.service, start_time=date_current_time)
             timer.save()
-            book_timer.end_timer()
+            book_timer.delete()
             #book_timer.delete()
             
-            download_thread = threading.Thread(target=timer.start_timer, name="start_train_timer"+ str(timer.id))
-            download_thread.start()
             broadcast_ticks({
                 "new_timer": True,
                 "timer_id": timer.id,
@@ -454,7 +451,10 @@ def end_train(request):
     if request.method == "POST":
         user_id = int(request.POST["user_id"])
         company_id = int(request.POST["company_id"])
-        
+        current_time_str = request.POST["end_time"]
+        if len(current_time_str) == 16:
+            current_time_str += ":00"
+        current_time = datetime.strptime(current_time_str, '%d-%m-%Y %H:%M:%S')
         user = User.objects.filter(id=user_id).first()
         if not user:
             return JsonResponse({"error": "Not authorized!"})
@@ -464,24 +464,42 @@ def end_train(request):
             return JsonResponse({"error": "Company not exist!"})
         
         train_timer = TrainTimer.objects.filter(user=user, company=company).first()
-        finished_train = FinishedTrain.objects.create(start_time=train_timer.start_time, end_time=train_timer.end_time, user=user, company=company, service=train_timer.service, minutes=train_timer.minutes)
-        train_timer.close_timer = True
-        train_timer.save()
-        price = train_timer.end_timer()
-        finished_train.bill = price
+        minutes = (current_time - train_timer.start_time).seconds//60
+        
+        price = minutes * train_timer.service.get_price(train_timer.start_time.weekday(), train_timer.start_time)
+        if price < 0:
+            return JsonResponse({"error": "Цена бля!"})
+        finished_train = FinishedTrain.objects.create(start_time=train_timer.start_time, end_time=current_time, user=user, company=company, service=train_timer.service, minutes=minutes, bill=price)
         finished_train.save()
+        train_timer.delete()
         broadcast_ticks({
             "new_history": True,
             "phone": finished_train.user.phone,
             "service": finished_train.service.category.name,
-            "start_time": datetime.strptime(finished_train.start_time, '%d-%m-%Y %H:%M'),
-            "end_time": datetime.strptime(finished_train.end_time, '%d-%m-%Y %H:%M'),
-            "minutes": finished_train.minutes,
+            "start_time": str(finished_train.start_time),
+            "end_time": str(finished_train.end_time),
+            "minutes": minutes,
             "bill": finished_train.bill,
             "history_id": finished_train.id,
         })
-
+        
         return JsonResponse({"success": "Тренировка окончена!", "bill": price})        
+    return JsonResponse({"error": request.method + " method not allowed!"})
+
+@csrf_exempt
+def get_minutes(request):
+    if request.method == "POST":
+        current_time_str = request.POST["current_time"]
+        
+        if len(current_time_str) == 16:
+            current_time_str += ":10"
+        current_time = datetime.strptime(current_time_str, '%d-%m-%Y %H:%M:%S')
+        train_timer_id = request.POST["timer_id"]
+        train_timer = TrainTimer.objects.filter(id=int(train_timer_id)).first()
+        if not train_timer:
+            return JsonResponse({"error": "Train timer with ID " + train_timer_id + " not found!"})
+        minutes = (current_time - train_timer.start_time).seconds//60
+        return JsonResponse({"minutes": minutes})
     return JsonResponse({"error": request.method + " method not allowed!"})
 
 @csrf_exempt
@@ -592,7 +610,7 @@ def submit_form(request):
 
         send_email(message, mail_subject, settings.EMAIL_HOST_USER)
         
-        return JsonResponse({"success": True}) 
+        return JsonResponse({"success": True})
 
     return JsonResponse({"error": request.method + " method not allowed!"})
 # @csrf_exempt

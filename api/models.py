@@ -116,8 +116,21 @@ class Service(models.Model):
     days = models.ManyToManyField(Schedule, null=True, blank=True)
     images = models.ManyToManyField(MyImage, null=True, blank=True)
     def __str__(self):
-        return self.category
+        return self.category.name
 
+    def get_price(self, day, time):
+        print(day)
+        current_day = self.days.filter(day=day).first()
+        print(current_day)
+        if not current_day:
+            return -1
+        current_timeline = current_day.timelines.all().filter(start_time__lte=time, end_time__gte=time).first()
+        if not current_timeline:
+            return -1
+        print(current_timeline)
+        
+        return current_timeline.price
+        
     # def days(self, model):
     #     return  model.days.all().order_by('day')
 
@@ -149,23 +162,8 @@ class Timer(models.Model):
     service = models.ForeignKey(Service, on_delete=models.CASCADE, blank=True, null=True)
     start_time = models.DateTimeField(default=datetime.today())
     end_time = models.DateTimeField(null=True, blank=True)
-    close_timer = models.BooleanField(default=False)
     is_confirmed = models.BooleanField(default=False)
-    def start_timer(self):
-        while(not self.close_timer):
-            if(self.end_time < datetime.today()):
-                break
-            time.sleep(60)
-        broadcast_ticks({
-            "book_expired": True,
-            "timer_id": self.id,  
-            "company_id": self.company.id,
-        })
-        Timer.objects.filter(id=self.id).first().delete()
-
-    def end_timer(self):
-        self.close_timer = True
-        self.save()
+    is_expired = models.BooleanField(default=False)
 
     def __str__(self):
         return "(" + self.user.phone + ") " + self.company.name + ": " + str(self.end_time)
@@ -176,38 +174,6 @@ class TrainTimer(models.Model):
     service = models.ForeignKey(Service, on_delete=models.CASCADE, blank=True, null=True)
     start_time = models.DateTimeField(default=datetime.today())
     end_time = models.DateTimeField(null=True, blank=True)
-    close_timer = models.BooleanField(default=False)
-    minutes = models.IntegerField(default=0)
-    def start_timer(self):
-        count = 0
-        close_timer = False
-        while(not close_timer):
-            time.sleep(5)
-            close_timer = TrainTimer.objects.get(id=self.id).close_timer
-            if close_timer:
-                break
-            count += 1
-            self.minutes = count
-            self.save()
-            timer = TrainTimer.objects.get(id=self.id)
-            broadcast_ticks({"minutes": timer.minutes, "id": timer.id, "company_id": timer.company.id})
-             
-        TrainTimer.objects.get(id=self.id).delete()
-
-    def end_timer(self):
-        price = self.minutes * self.service.price
-        finished_train = FinishedTrain.objects.create(start_time=self.start_time, end_time=self.start_time + timedelta(minutes=self.minutes), company=self.company, service=self.service, minutes=self.minutes, bill=price, user=self.user)
-        finished_train.save()
-        broadcast_ticks({
-            "delete_id": self.id,
-            "service_name": finished_train.service.name,
-            "phone": finished_train.user.phone,
-            "end_time": str(finished_train.end_time),
-            "minutes": finished_train.minutes,
-            "finished_train_id": finished_train.id,
-            "company_id": finished_train.company.id,
-            })
-        return price
 
     def __str__(self):
         return "(" + self.user.phone + ") " + self.company.name + ": " + str(self.start_time)
