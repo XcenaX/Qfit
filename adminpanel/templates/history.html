@@ -34,7 +34,7 @@
                     {%for history in histories%}
                         <tr id="history{{history.id}}">
                             <td>{{history.user.phone}}</td>
-                            <td>{{history.service.name}}</td>
+                            <td>{{history.service.category.name}}</td>
                             <td>{{history.start_time|date:'Y-m-d H:i'}}</td>
                             <td>{{history.end_time|date:'Y-m-d H:i'}}</td>
                             <td>{{history.minutes}} минуты</td>

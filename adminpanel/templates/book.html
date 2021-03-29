@@ -32,7 +32,7 @@
                 {%for timer in current_timers%}
                     <tr id="current{{timer.id}}">
                         <td>{{timer.user.phone}}</td>
-                        <td>{{timer.service.name}}</td>
+                        <td>{{timer.service.category.name}}</td>
                         <td>{{timer.start_time|date:'Y-m-d H:i'}}</td>
                         <td>{{timer.end_time|date:'Y-m-d H:i'}}</td>
                         <td>
@@ -67,7 +67,7 @@
                 {%for timer in accepted_timers%}
                     <tr id="accepted{{timer.id}}">
                         <td>{{timer.user.phone}}</td>
-                        <td>{{timer.service.name}}</td>
+                        <td>{{timer.service.category.name}}</td>
                         <td>{{timer.start_time|date:'Y-m-d H:i'}}</td>
                         <td class="accepted">Принято</td>
                     </tr>
