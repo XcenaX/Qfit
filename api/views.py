@@ -341,7 +341,7 @@ def book_time(request):
             for day in current_service.days.all():
                 if int(day.day) == date_book_time.weekday():
                     for timeline in day.timelines.all():
-                        if timeline.start_time < date_book_time.time() and timeline.end_time > date_book_time.time():
+                        if timeline.start_time <= date_book_time.time() and timeline.end_time >= date_book_time.time():
                             has_places = True
                             service = current_service
                             break
