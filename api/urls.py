@@ -24,7 +24,7 @@ router.register(r'timers', TimerViewSet)
 router.register(r'train_timers', TrainTimerViewSet)
 router.register(r'service_categories', ServiceCategoryViewSet)
 
-from rest_framework.authtoken import views as api_views
+#from rest_framework.authtoken import views as api_views
 
 urlpatterns = [
     url(r'^', include(router.urls)),
