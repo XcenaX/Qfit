@@ -112,8 +112,13 @@
                     <td>`+data["start_time"].slice(0, -3)+`</td>
                     <td class="accepted">Принято</td>
                     `;
+                    accepted_table = document.getElementById('table_accepted');
+                    accepted_table.appendChild(tr);
+                    if($("#table_current tr").length == 2){
+                        empty_tr = $("#empty_tr");
+                        empty_tr.remove();
+                    }
 
-                    document.getElementById('table_accepted').appendChild(tr);
                 }
                 if(data["new_book"] != null){
                     if($("#empty_tr")[0] != null){
