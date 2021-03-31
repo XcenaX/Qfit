@@ -168,7 +168,7 @@ class ServiceField(serializers.RelatedField):
 class ServiceCategorySerializer(serializers.ModelSerializer):    
     class Meta:
         model = ServiceCategory
-        fields = ("id", "name")
+        fields = ("id", "name", "amount_of_services")
 
 class ServiceSerializer(serializers.ModelSerializer):    
     #days = ScheduleSerializer(many=True, read_only=False, required=False, )
@@ -193,7 +193,7 @@ class ServiceSerializer(serializers.ModelSerializer):
 
 class CompanySerializer(serializers.ModelSerializer):    
     owner = UserField(many=False, read_only=False)
-    services = ServiceField(many=True, read_only=False)
+    services = ServiceSerializer(many=True, read_only=False)
     class Meta:
         model = Company
         fields = [ "id", "name", "owner", "address", "latitude", "longitude", "services", "qr_url"]

@@ -107,6 +107,12 @@ class MyImage(models.Model):
 
 class ServiceCategory(models.Model):
     name = models.TextField(default='')
+
+    def amount_of_services(self):
+        service_category = ServiceCategory.objects.get(pk=self.pk)
+        services = Service.objects.filter(category=service_category)
+        return len(services)
+
     def __str__(self):
         return self.name
 
