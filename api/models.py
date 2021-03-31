@@ -163,7 +163,16 @@ class Timer(models.Model):
     start_time = models.DateTimeField(default=datetime.today())
     end_time = models.DateTimeField(null=True, blank=True)
     is_confirmed = models.BooleanField(default=False)
-    is_expired = models.BooleanField(default=False)
+
+    
+    def delete_after_expired(self):
+        print(datetime.now())
+        if self.end_time < datetime.now():
+            timer = Timer.objects.get(pk=self.pk)
+            timer.delete()
+            return True
+        else:
+            return False
 
     def __str__(self):
         return "(" + self.user.phone + ") " + self.company.name + ": " + str(self.end_time)

@@ -247,7 +247,7 @@ class TimerSerializer(serializers.ModelSerializer):
     company = CompanyField(many=False, read_only=False)
     class Meta:
         model = Timer
-        fields = ("id", "user", "company", "service", "start_time", "end_time", "is_confirmed")
+        fields = ("id", "user", "company", "service", "start_time", "end_time", "is_confirmed", "delete_after_expired")
 
 class TrainTimerSerializer(serializers.ModelSerializer):    
     user = UserField(many=False, read_only=False)
