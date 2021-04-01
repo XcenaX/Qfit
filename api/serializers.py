@@ -165,6 +165,27 @@ class ServiceField(serializers.RelatedField):
             'Obj does not exist.'
             )
 
+class ServiceCategoryField(serializers.RelatedField):
+    queryset = ServiceCategory.objects.all()
+    def to_representation(self, value):
+        return value.name
+    def to_internal_value(self, data):
+        try:
+            try:
+                return ServiceCategory.objects.get(name=data)
+            except KeyError:
+                raise serializers.ValidationError(
+                    'id is a required field.'
+                )
+            except ValueError:
+                raise serializers.ValidationError(
+                    'id must be an integer.'
+                )
+        except Type.DoesNotExist:
+            raise serializers.ValidationError(
+            'Obj does not exist.'
+            )
+
 class ServiceCategorySerializer(serializers.ModelSerializer):    
     class Meta:
         model = ServiceCategory
@@ -174,6 +195,7 @@ class ServiceSerializer(serializers.ModelSerializer):
     #days = ScheduleSerializer(many=True, read_only=False, required=False, )
     days = serializers.SerializerMethodField("get_days")
     images = MyImageSerializer(many=True, read_only=False, required=False)
+    category = ServiceCategoryField(many=False, read_only=False, required=False)
 
     def get_days(self, instance):
         days = instance.days.all().order_by("day")

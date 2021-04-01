@@ -133,7 +133,7 @@ class ScheduleViewSet(viewsets.ModelViewSet):
 
 class ServiceViewSet(viewsets.ModelViewSet):
     filter_backends = (SearchFilter, DjangoFilterBackend)
-    filter_fields = ["category", "id"]
+    filter_fields = ["category__name", "id"]
     queryset = Service.objects.all()
     serializer_class = ServiceSerializer
     permission_classes = (IsAuthenticated,)
