@@ -321,6 +321,7 @@ class Register(APIView):
             user = User.objects.create(phone=phone)
             user.save()
             return Response({"success": True, "user_id": user.id})
+        return Response({"error": "Неправильный код"})
 
 class EndRegistration(APIView):
     permission_classes = (IsAuthenticated,)
