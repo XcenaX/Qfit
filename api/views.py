@@ -374,7 +374,7 @@ class EndLogin(APIView):
         user = User.objects.filter(id=user_id).first()
         if not user:
             return Response({"error": "Пользователя с таким id не найдено!"})
-        verification_phone = VerificationPhone.objects.filter(phone=user.phone, code).first()
+        verification_phone = VerificationPhone.objects.filter(phone=user.phone, code=code).first()
         if not verification_phone:
             return Response({"error": "Неправильный код!"})
         verification_phone.delete()
