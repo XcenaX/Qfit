@@ -308,7 +308,11 @@ class Register(APIView):
         return Response({"error": request.method + " method not allowed!"})
     def post(self, request):
         phone = request.POST["phone"]
-        code = request.POST["code"]
+        code = None
+        try:
+            code = request.POST["code"]
+        except:
+            pass
         
         if len(User.objects.filter(phone=phone)) > 0:
             return Response({"error": "User with this phone already exist!"})
