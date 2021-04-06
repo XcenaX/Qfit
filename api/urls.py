@@ -36,6 +36,7 @@ urlpatterns = [
     # path("get_coords/", views.get_coords, name="get_coords"),
     # path("get_items/", views.get_items, name="get_items"),
     path("login/", views.Login.as_view(), name="login"),
+    path("end_login/", views.EndLogin.as_view(), name="end_login"),
     path("send_code/", views.SendCode.as_view(), name="send_code"),
     path("register/", views.Register.as_view(), name="register"),
     path("end_registration/", views.EndRegistration.as_view(), name="end_registration"),

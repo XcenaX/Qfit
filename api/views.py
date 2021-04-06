@@ -353,7 +353,31 @@ class Login(APIView):
         if len(users) == 0:
             return Response({"error": "Неверный номер телефона!"})        
         user = users.first()
-        
+        acnother_verification = VerificationPhone.objects.filter(phone=phone)
+        if acnother_verification:
+            acnother_verification.delete()
+
+        verification_phone = VerificationPhone.objects.create(phone=phone)
+        verification_phone.generate_code()
+
+        return Response({
+            "success": True,
+            "user_id": user.id,
+        }) 
+
+class EndLogin(APIView):
+    def get(self, request):
+        return Response({"error": request.method + " method not allowed!"})
+    def post(self, request):
+        user_id = int(request.POST["user_id"])
+        code = request.POST["code"]
+        user = User.objects.filter(id=user_id).first()
+        if not user:
+            return Response({"error": "Пользователя с таким id не найдено!"})
+        verification_phone = VerificationPhone.objects.filter(phone=user.phone, code).first()
+        if not verification_phone:
+            return Response({"error": "Неправильный код!"})
+        verification_phone.delete()
         return Response({
             "success": True,
             "user":{
@@ -362,7 +386,7 @@ class Login(APIView):
                 "role_id": user.role.id,
                 "role": user.role.name,
             },
-        }) 
+        })
 
 class BookTime(APIView):
     permission_classes = (IsAuthenticated,)
