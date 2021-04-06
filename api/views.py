@@ -362,7 +362,8 @@ class Login(APIView):
 
         verification_phone = VerificationPhone.objects.create(phone=phone)
         verification_phone.generate_code()
-
+        message = "Ваш код для входа в QFIT: " + verification_phone.code
+        send_sms(phone, message)
         return Response({
             "success": True,
             "user_id": user.id,
