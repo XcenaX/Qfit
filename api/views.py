@@ -51,7 +51,9 @@ from datetime import datetime, date
 API_KEY = "AIzaSyCcHCB9lx35nurrIOy2KvphPIvmsflB4mE"
 
 from adminpanel.modules.functions import broadcast_ticks, get_current_user
-from .modules.functions import check_image_type, check_timelines
+from .modules.functions import check_image_type, check_timelines, send_sms
+
+LIMIT_FRIENDS = 2
 
 #import googlemaps
 
@@ -90,7 +92,7 @@ class CompanyViewSet(viewsets.ModelViewSet):
 class UserViewSet(viewsets.ModelViewSet):
     filter_backends = (SearchFilter, DjangoFilterBackend)
     filter_fields = ["phone", "role", "ref_code", "bonuses"]
-    permission_classes = (IsAuthenticated,)
+    #permission_classes = (IsAuthenticated,)
     queryset = User.objects.all()
     serializer_class = UserSerializer
 
@@ -243,69 +245,116 @@ class ServiceCategoryViewSet(viewsets.ModelViewSet):
         except:
             raise Http404
 
-@csrf_exempt
-def download_file(request):
-    fl_path = '/file/path'
-    filename = 'downloaded_file_name.extension'
+class DownloadFile(APIView):
+    def get(self, request):
+        fl_path = '/file/path'
+        filename = 'downloaded_file_name.extension'
 
-    fl = open(fl_path, 'r')
-    mime_type, _ = mimetypes.guess_type(fl_path)
-    response = HttpResponse(fl, content_type=mime_type)
-    response['Content-Disposition'] = "attachment; filename=%s" % filename
-    return response
-
-
-
-def test(request):
-    return render(request, "test.html", {})
+        fl = open(fl_path, 'r')
+        mime_type, _ = mimetypes.guess_type(fl_path)
+        response = HttpResponse(fl, content_type=mime_type)
+        response['Content-Disposition'] = "attachment; filename=%s" % filename
+        return response
 
 
-@csrf_exempt
-def get_coords(request):
-    if request.method == "POST":
-        name = ""
-        try:
-            name = request.POST["name"]
-            data = requests.post("https://maps.googleapis.com/maps/api/geocode/json?address=" + name + "&key="+API_KEY)
-            
-            if data.json()["status"] == "ZERO_RESULTS":
-                return JsonResponse({"error": "Not found!"})
-            
-            return JsonResponse({
-                "longitude": data.json()["results"][0]["geometry"]["location"]["lng"],
-                "latitude": data.json()["results"][0]["geometry"]["location"]["lat"]
-                })
-        except Exception as error:
-            print(error)
-            return JsonResponse({"error": str(error)})
+class AddFriend(APIView):
+    permission_classes = (IsAuthenticated,)  
 
-    return JsonResponse({"error": request.method + " method not allowed!"})
+    def get(self, request):
+        return Response({"error": request.method + " method not allowed!"})
 
+    def post(self, request):
+        current_user_id = int(request.POST["current_user"])
+        code = int(request.POST["code"])
+        current_user = User.objects.filter(id=current_user_id)
+        if len(current_user) == 0:
+            return Response({"error": "User with this id nit found!"})
+        current_user = current_user.first()
+        friend = User.objects.filter(ref_code=code)
+        if len(friend) == 0:
+            return Response({"error": "User with this REF CODE nit found!"})
+        friend = friend.first()
 
-@csrf_exempt
-def register(request):
-    if request.method == "POST":
+        current_user.friends.add(friend)
+        friend.friends.add(current_user)
+        
+        current_user.save()
+        friend.save()
+        
+        return Response({"success": True}) 
+
+class SendCode(APIView):
+    permission_classes = (IsAuthenticated,)
+    def get(self, request):
+        return Response({"error": request.method + " method not allowed!"})
+    def post(self, request):
         phone = request.POST["phone"]
-
+        
         if len(User.objects.filter(phone=phone)) > 0:
-            return JsonResponse({"error": "User with this phone already exist!"})
-        user = User.objects.create(phone=phone)
+            return Response({"error": "User with this phone already exist!"})
+        # Выслать код
+        another_verification = VerificationPhone.objects.filter(phone=phone)
+        if another_verification:
+            another_verification.delete()
+        verification_phone = VerificationPhone.objects.create(phone=phone)
+        verification_phone.generate_code()
+        message = "Ваш код для регистрации в QFIT: " + verification_phone.code
+        send_sms(phone, message)
+        return Response({"success": True})
+
+class Register(APIView):
+    permission_classes = (IsAuthenticated,)
+    def get(self, request):
+        return Response({"error": request.method + " method not allowed!"})
+    def post(self, request):
+        phone = request.POST["phone"]
+        code = request.POST["code"]
+        
+        if len(User.objects.filter(phone=phone)) > 0:
+            return Response({"error": "User with this phone already exist!"})
+        
+        if code:
+            verification_phone = VerificationPhone.objects.filter(phone=phone, code=code).first()
+            if not verification_phone:
+                return Response({"error": "Неправильный код"})
+            
+            user = User.objects.create(phone=phone)
+            user.save()
+            return Response({"success": True, "user_id": user.id})
+
+class EndRegistration(APIView):
+    permission_classes = (IsAuthenticated,)
+    def get(self, request):
+        return Response({"error": request.method + " method not allowed!"})
+    def post(self, request):
+        name = request.POST["name"]
+        user_id = int(request.POST["user_id"])
+        email = request.POST["email"]
+        sex = request.POST["sex"]#no
+        
+        user = User.objects.filter(id=user_id).first()
+        if not user:
+            return Response({"error": "User with this id not found!"})
+        user.email = email
+        user.name = name
+        user.sex = sex
         user.save()
-        return JsonResponse({"success": True}) 
+        VerificationPhone.objects.filter(phone=user.phone).first().delete()
 
-    return JsonResponse({"error": request.method + " method not allowed!"})
+        return Response({"success": True})
 
-
-@csrf_exempt
-def login(request):
-    if request.method == "POST":
+class Login(APIView):
+    permission_classes = (IsAuthenticated,)
+    def get(self, request):
+        return Response({"error": request.method + " method not allowed!"})
+    def post(self, request):
         phone = request.POST["phone"]
         users = User.objects.filter(phone=phone)
         if len(users) == 0:
-            return JsonResponse({"error": "Неверный номер телефона!"})        
+            return Response({"error": "Неверный номер телефона!"})        
         user = users.first()
         
-        return JsonResponse({
+        return Response({
             "success": True,
             "user":{
                 "id": user.id,
@@ -314,12 +363,12 @@ def login(request):
                 "role": user.role.name,
             },
         }) 
-        
-    return JsonResponse({"error": request.method + " method not allowed!"})
 
-@csrf_exempt
-def book_time(request):
-    if request.method == "POST":
+class BookTime(APIView):
+    permission_classes = (IsAuthenticated,)
+    def get(self, request):
+        return Response({"error": request.method + " method not allowed!"})
+    def post(self, request):
         user_id = int(request.POST["user_id"])
         company_id = int(request.POST["company_id"])
         service_id = int(request.POST["service_id"])
@@ -361,12 +410,12 @@ def book_time(request):
             "timer_user": timer.user.phone,
             "company_id": timer.company.id,
         })
-        return JsonResponse({"success": "Company was booked!"})        
-    return JsonResponse({"error": request.method + " method not allowed!"})
+        return JsonResponse({"success": "Company was booked!"})
 
-@csrf_exempt
-def confirm_book(request):
-    if request.method == "POST":
+class ConfirmBoook(APIView):
+    def get(self, request):
+        return Response({"error": request.method + " method not allowed!"})
+    def post(self, request):
         user_id = int(request.POST["user_id"])
         company_id = int(request.POST["company_id"])
         current_time = request.POST["current_time"]
@@ -374,11 +423,11 @@ def confirm_book(request):
         
         user = User.objects.filter(id=user_id).first()
         if not user:
-            return JsonResponse({"error": "Not authorized!"})
+            return Response({"error": "Not authorized!"})
         
         company = Company.objects.filter(id=company_id).first()
         if not company:
-            return JsonResponse({"error": "Company not exist!"})
+            return Response({"error": "Company not exist!"})
         
         book_timers = Timer.objects.filter(user=user, company=company)
         book_timer = None
@@ -389,11 +438,11 @@ def confirm_book(request):
         
         if not book_timer:
             if(len(book_timers) > 0):
-                return JsonResponse({"error": "Вы сможете подтвердить бронь только в " + str(book_timers[0].start_time - timedelta(minutes=10))})
+                return Response({"error": "Вы сможете подтвердить бронь только в " + str(book_timers[0].start_time - timedelta(minutes=10))})
             else:
-                return JsonResponse({"error": "Бронь не найдена!"})
+                return Response({"error": "Бронь не найдена!"})
         elif not book_timer.is_confirmed:
-            return JsonResponse({"error": "Ваша бронь не подтверждена!"})
+            return Response({"error": "Ваша бронь не подтверждена!"})
         else:
             timer = TrainTimer.objects.create(user=user,company=company, service=book_timer.service, start_time=date_current_time)
             timer.save()
@@ -408,16 +457,16 @@ def confirm_book(request):
                 "timer_user": timer.user.phone,
                 "company_id": timer.company.id,
             })
-            return JsonResponse({"success": "Тренировка началась!"})        
-    return JsonResponse({"error": request.method + " method not allowed!"})
+            return Response({"success": "Тренировка началась!"})
 
-@csrf_exempt
-def accept_book(request): # Клуб принял бронь
-    if request.method == "POST":
+class AcceptBook(APIView):
+    def get(self, request):
+        return Response({"error": request.method + " method not allowed!"})
+    def post(self, request):
         timer_id = int(request.POST["timer_id"])
         timer = Timer.objects.filter(id=timer_id).first() 
         if not timer:
-            return JsonResponse({"success": "Такой брони уже не существует!"})     
+            return Response({"success": "Такой брони уже не существует!"})     
         timer.is_confirmed = True
         timer.save()
         broadcast_ticks({
@@ -429,12 +478,12 @@ def accept_book(request): # Клуб принял бронь
             "user": timer.user.phone,
             "timer_id": timer_id,
         })
-        return JsonResponse({"success": "Бронь подтверждена!"})        
-    return JsonResponse({"error": request.method + " method not allowed!"})
+        return Response({"success": "Бронь подтверждена!"})
 
-@csrf_exempt
-def decline_book(request): # Клуб отклонил бронь
-    if request.method == "POST":
+class DeclineBook(APIView):
+    def get(self, request):
+        return Response({"error": request.method + " method not allowed!"})
+    def post(self, request):
         timer_id = int(request.POST["timer_id"])
         timer = Timer.objects.filter(id=timer_id).first() 
         timer.delete()
@@ -443,12 +492,12 @@ def decline_book(request): # Клуб отклонил бронь
             "decline_book": True,
             "timer_id": timer_id,
         })
-        return JsonResponse({"success": "Бронь подтверждена!"})        
-    return JsonResponse({"error": request.method + " method not allowed!"})
+        return Response({"success": "Бронь подтверждена!"})
 
-@csrf_exempt
-def end_train(request):
-    if request.method == "POST":
+class EndTrain(APIView):
+    def get(self, request):
+        return Response({"error": request.method + " method not allowed!"})
+    def post(self, request):
         user_id = int(request.POST["user_id"])
         company_id = int(request.POST["company_id"])
         current_time_str = request.POST["end_time"]
@@ -457,18 +506,18 @@ def end_train(request):
         current_time = datetime.strptime(current_time_str, '%d-%m-%Y %H:%M:%S')
         user = User.objects.filter(id=user_id).first()
         if not user:
-            return JsonResponse({"error": "Not authorized!"})
+            return Response({"error": "Not authorized!"})
         
         company = Company.objects.filter(id=company_id).first()
         if not company:
-            return JsonResponse({"error": "Company not exist!"})
+            return Response({"error": "Company not exist!"})
         
         train_timer = TrainTimer.objects.filter(user=user, company=company).first()
         minutes = (current_time - train_timer.start_time).seconds//60
         
         price = minutes * train_timer.service.get_price(train_timer.start_time.weekday(), train_timer.start_time)
         if price < 0:
-            return JsonResponse({"error": "Цена бля!"})
+            return Response({"error": "Цена бля!"})
         finished_train = FinishedTrain.objects.create(start_time=train_timer.start_time, end_time=current_time, user=user, company=company, service=train_timer.service, minutes=minutes, bill=price)
         finished_train.save()
         train_timer.delete()
@@ -483,12 +532,12 @@ def end_train(request):
             "history_id": finished_train.id,
         })
         
-        return JsonResponse({"success": "Тренировка окончена!", "bill": price})        
-    return JsonResponse({"error": request.method + " method not allowed!"})
+        return Response({"success": "Тренировка окончена!", "bill": price})
 
-@csrf_exempt
-def get_minutes(request):
-    if request.method == "POST":
+class GetMinutes(APIView):
+    def get(self, request):
+        return Response({"error": request.method + " method not allowed!"})
+    def post(self, request):
         current_time_str = request.POST["current_time"]
         
         if len(current_time_str) == 16:
@@ -497,14 +546,14 @@ def get_minutes(request):
         train_timer_id = request.POST["timer_id"]
         train_timer = TrainTimer.objects.filter(id=int(train_timer_id)).first()
         if not train_timer:
-            return JsonResponse({"error": "Train timer with ID " + train_timer_id + " not found!"})
+            return Response({"error": "Train timer with ID " + train_timer_id + " not found!"})
         minutes = (current_time - train_timer.start_time).seconds//60
-        return JsonResponse({"minutes": minutes})
-    return JsonResponse({"error": request.method + " method not allowed!"})
+        return Response({"minutes": minutes})
 
-@csrf_exempt
-def update_schedules(request):
-    if request.method == "POST":
+class UpdateSchedules(APIView):
+    def get(self, request):
+        return Response({"error": request.method + " method not allowed!"})
+    def post(self, request):
         schedules_json = request.POST["schedules"]
         schedules = json.loads(schedules_json)
         service_id = int(request.POST["service"])
@@ -514,7 +563,7 @@ def update_schedules(request):
         service.description = request.POST["description"]
         service.save()
         if not check_timelines(schedules):
-            return JsonResponse({"error": "Нельзя накладывать время занятия друг на друга!"})
+            return Response({"error": "Нельзя накладывать время занятия друг на друга!"})
         for schedule in schedules:
             current_schedule = service.days.all().filter(day=schedule["day"]).first()
             for timeline in schedule["timelines"]:
@@ -530,29 +579,26 @@ def update_schedules(request):
                     db_timeline.limit_people = timeline["limit_people"]
                     db_timeline.save()
             current_schedule.save()
-        return JsonResponse({"success": "NICE BOY!"})
-         
-    return JsonResponse({"error": request.method + " method not allowed!"})
+        return Response({"success": "NICE BOY!"})
 
-@csrf_exempt
-def add_timeline(request):
-    if request.method == "POST":
+
+class AddTimeline(APIView):
+    def get(self, request):
+        return Response({"error": request.method + " method not allowed!"})
+    def post(self, request):
         schedule_id = request.POST["schedule"]
         schedule = Schedule.objects.get(id=schedule_id)
         
         new_timeline = TimeLine.objects.create()
         schedule.timelines.add(new_timeline)
         schedule.save()
-        print(str(new_timeline.start_time))
-        return JsonResponse({"id": new_timeline.id, "start_time": str(new_timeline.start_time)[:-3], "end_time": str(new_timeline.end_time)[:-3], "limit_people": new_timeline.limit_people, "price": new_timeline.price})
-    return JsonResponse({"error": request.method + " method not allowed!"})
+        return Response({"id": new_timeline.id, "start_time": str(new_timeline.start_time)[:-3], "end_time": str(new_timeline.end_time)[:-3], "limit_people": new_timeline.limit_people, "price": new_timeline.price})
 
 
-
-
-@csrf_exempt
-def add_image(request):
-    if request.method == "POST":
+class AddImage(APIView):
+    def get(self, request):
+        return Response({"error": request.method + " method not allowed!"})
+    def post(self, request):
         image = request.FILES["image"]
         service_id = request.POST["service"]
         if(check_image_type(image)):
@@ -561,30 +607,27 @@ def add_image(request):
             service = Service.objects.get(id=service_id)
             service.images.add(model_image)
             service.save()
-            return JsonResponse({"image": model_image.image.url, "id": model_image.id})
+            return Response({"image": model_image.image.url, "id": model_image.id})
         else:
             upload_error = "Выберите .jpg или .png формат!" 
-            return JsonResponse({"error": upload_error})
-         
-    return JsonResponse({"error": request.method + " method not allowed!"})
+            return Response({"error": upload_error})
 
-@csrf_exempt
-def add_service(request):
-    if request.method == "POST":
+class AddService(APIView):
+    def get(self, request):
+        return Response({"error": request.method + " method not allowed!"})
+    def post(self, request):
         service_id = request.POST["service"]
         user = get_current_user(request)
         service = Service.objects.get(id=service_id)
         user.company.services.add(service)
         user.save()
         
-        return JsonResponse({"success":True})
-         
-    return JsonResponse({"error": request.method + " method not allowed!"})
+        return Response({"success":True})
 
-
-@csrf_exempt
-def submit_form(request):
-    if request.method == "POST":
+class SubmitForm(APIView):
+    def get(self, request):
+        return Response({"error": request.method + " method not allowed!"})
+    def post(self, request):
         club_name = request.POST["club_name"]
         description = request.POST["description"]
         city = request.POST["city"]
@@ -601,7 +644,7 @@ def submit_form(request):
             'club_name': club_name,
             'description': description,
             'city': city,
-            'has_optional_services': has_optional_services,
+            'has_optional_services': has_optional_services if has_optional_services else False,
             "optional_services": optional_services,
             "phone": phone,
             "email": email,
@@ -610,9 +653,14 @@ def submit_form(request):
 
         send_email(message, mail_subject, settings.EMAIL_HOST_USER)
         
-        return JsonResponse({"success": True})
+        return Response({"success": True})
 
-    return JsonResponse({"error": request.method + " method not allowed!"})
+
+
+def test(request):
+    return render(request, "test.html", {})
+
+
 # @csrf_exempt
 # def add_to_history(request):
 #     if request.method == "POST":

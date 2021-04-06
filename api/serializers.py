@@ -64,11 +64,18 @@ class MyImageField(serializers.RelatedField):
             'Obj does not exist.'
             )
 
-class UserSerializer(serializers.ModelSerializer):
+class FriendSerializer(serializers.ModelSerializer):
     role = RoleField(many=False, read_only=False)
     class Meta:
         model = User
-        fields = ("id", "role", "phone", "avatar", "ref_code", "bonuses")
+        fields = ("id", "role", "phone", "avatar", "ref_code", "bonuses", "trains_count", "avarage_train_time", "max_train_time", "most_visited_club")
+
+class UserSerializer(serializers.ModelSerializer):
+    role = RoleField(many=False, read_only=False)
+    friends = FriendSerializer(many=True, read_only=False)
+    class Meta:
+        model = User
+        fields = ("id", "role", "phone", "avatar", "ref_code", "bonuses", "trains_count", "avarage_train_time", "max_train_time", "most_visited_club", "friends")
     
     def create(self, validated_data):
         try:
@@ -215,7 +222,7 @@ class ServiceSerializer(serializers.ModelSerializer):
 
 class CompanySerializer(serializers.ModelSerializer):    
     owner = UserField(many=False, read_only=False)
-    services = ServiceSerializer(many=True, read_only=False)
+    services = ServiceField(many=True, read_only=False, required=False)
     class Meta:
         model = Company
         fields = [ "id", "name", "owner", "address", "latitude", "longitude", "services", "qr_url"]
@@ -228,7 +235,12 @@ class CompanySerializer(serializers.ModelSerializer):
             latitude= validated_data['latitude'],
             longitude= validated_data['longitude'],
             )
-        company.services.set(validated_data['services'])
+        try:
+            services = validated_data['services']
+            company.services.set(services)
+        except:
+            pass
+            
         company.qr_url = qr_url = "https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=" + str(company.id)
         company.save()
     

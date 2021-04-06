@@ -7,7 +7,7 @@ import time
 from datetime import timedelta
 from adminpanel.models import *
 from adminpanel.modules.functions import broadcast_ticks
-
+from api.modules.functions import get_random_string_of_numbers
 
 import string    
 import random
@@ -22,7 +22,7 @@ DAYS_OF_WEEK = (
     (6, 'Воскресенье'),
 )
 
-
+CODE_LENGTH = 5
 
 
 
@@ -33,15 +33,21 @@ class Role(models.Model):
     def __str__(self):
         return self.name
 
+from collections import Counter
+
 class User(models.Model):
     phone = models.TextField(default='')
     role = models.ForeignKey(Role, on_delete=models.CASCADE, blank=True, null=True, default=Role.objects.get(name="user").id)
     avatar = models.ImageField(upload_to='avatars', blank=True, null=True)
-    ref_code = models.TextField(default="")
+    ref_code = models.TextField(default="", blank=True, null=True)
     bonuses = models.IntegerField(default=0)
+    friends = models.ManyToManyField("User", null=True, blank=True)
+    email = models.TextField(default="")
+    name = models.TextField(default="")
+    sex = models.TextField(default="")
     def __str__(self):
         return self.phone
-    
+
     def generate_ref_code(self):
         ref_code_length = 8
         code_unique = False
@@ -51,6 +57,60 @@ class User(models.Model):
                 code_unique = True
         self.ref_code = ran
         self.save()
+
+    def trains_count(self):
+        current_user = User.objects.get(pk=self.pk)
+        return len(FinishedTrain.objects.filter(user = current_user))
+    
+    def avarage_train_time(self):
+        current_user = User.objects.get(pk=self.pk)
+        trains = FinishedTrain.objects.filter(user=current_user)
+        count = len(trains)
+        if count is 0:
+            return 0
+        minutes = 0
+        for train in trains:
+            minutes += train.minutes
+        return minutes // count
+    
+    def max_train_time(self):
+        current_user = User.objects.get(pk=self.pk)
+        trains = FinishedTrain.objects.filter(user=current_user)
+        if len(trains) is 0:
+            return 0
+        max_time = trains[0].minutes
+        for train in trains:
+            if max_time < train.minutes:
+                max_time = train.minutes
+        return max_time
+    
+    def most_visited_club(self):
+        current_user = User.objects.get(pk=self.pk)
+        trains = FinishedTrain.objects.filter(user=current_user)
+        if len(trains) is 0:
+            return 0
+        names = []
+        for train in trains:
+            names.append(train.company.name)
+        count = Counter(names)
+        return list(count.most_common()[0])[0]
+
+class VerificationPhone(models.Model):
+    phone = models.TextField(null=True, blank=True)
+    code = models.TextField(default="")
+
+    def generate_code(self):
+        code_length = 8
+        code_unique = False
+        ran = ""
+        while not code_unique:
+            ran = get_random_string_of_numbers(CODE_LENGTH)
+            if len(VerificationPhone.objects.filter(code=ran))==0:
+                code_unique = True
+        self.code = ran
+        self.save()
+
+
 
 class TimeLine(models.Model):
     start_time = models.TimeField(default=datetime.strptime("00:00", "%H:%M"))
@@ -107,6 +167,7 @@ class MyImage(models.Model):
 
 class ServiceCategory(models.Model):
     name = models.TextField(default='')
+    image = models.ImageField(upload_to='services_categories', blank=True, null=True)
 
     def amount_of_services(self):
         service_category = ServiceCategory.objects.get(pk=self.pk)
@@ -148,6 +209,7 @@ class Company(models.Model):
     latitude = models.DecimalField(decimal_places=14, max_digits=16, blank=True, null=True)
     longitude = models.DecimalField(decimal_places=14, max_digits=16, blank=True, null=True)
     services = models.ManyToManyField(Service, null=True, blank=True)
+    all_bonuses = models.IntegerField(default=0)
     def __str__(self):
         return self.name
 

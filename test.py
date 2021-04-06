@@ -1,8 +1,10 @@
-import string
-import random
-import time
+from twilio.rest import Client 
+from qfit.settings import TWILIO_CODE
+ 
+account_sid = 'AC7727dd61dab28c7a073c7702515da0e8' 
+auth_token = TWILIO_CODE 
+client = Client(account_sid, auth_token) 
+ 
+message = client.messages.create(to='+77011242693', body="ХАЙ", messaging_service_sid="MG6ab91f013109df58bc4811e674231c85") 
 
-for i in range(0,1000):
-    random_digit = int(''.join(random.choice(string.digits) for i in range(2)))
-    print ( ''.join(random.choice(string.ascii_lowercase) for i in range(random_digit)) )
-    time.sleep(random.choice([0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9]))
+print(message.sid)
