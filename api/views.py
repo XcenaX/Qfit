@@ -317,7 +317,9 @@ class Register(APIView):
             verification_phone = VerificationPhone.objects.filter(phone=phone, code=code).first()
             if not verification_phone:
                 return Response({"error": "Неправильный код"})
-            
+            users = User.objects.filter(phone=phone)
+            if len(users) > 0:
+                return Response({"success": True, "user_id": users.first().id})
             user = User.objects.create(phone=phone)
             user.save()
             return Response({"success": True, "user_id": user.id})
