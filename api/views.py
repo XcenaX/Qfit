@@ -293,11 +293,13 @@ class SendCode(APIView):
         if len(User.objects.filter(phone=phone)) > 0:
             return Response({"error": "User with this phone already exist!"})
         # Выслать код
-        another_verification = VerificationPhone.objects.filter(phone=phone)
-        if another_verification:
-            another_verification.delete()
-        verification_phone = VerificationPhone.objects.create(phone=phone)
-        verification_phone.generate_code()
+        another_verification = VerificationPhone.objects.filter(phone=phone).first()
+        verification_phone = None
+        if not another_verification:
+            verification_phone = VerificationPhone.objects.create(phone=phone)
+            verification_phone.generate_code()
+        else:
+            verification_phone = another_verification
         message = "Ваш код для регистрации в QFIT: " + verification_phone.code
         send_sms(phone, message)
         return Response({"success": True})
