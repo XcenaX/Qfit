@@ -288,69 +288,102 @@ class SendCode(APIView):
     def get(self, request):
         return Response({"error": request.method + " method not allowed!"})
     def post(self, request):
-        phone = request.POST["phone"]
-        
-        if len(User.objects.filter(phone=phone)) > 0:
-            return Response({"error": "User with this phone already exist!"})
+        phone = None
+        code_type = None
+        try:
+            phone = request.POST["phone"]
+            code_type = request.POST["code_type"] # Либо login либо register
+        except:
+            return Response({"error": "Не передан один из параметров: phone, code_type"})
+        message = None
+        if code_type == "register":
+            if len(User.objects.filter(phone=phone)) > 0:
+                return Response({"error": "Пользователь с таким телефоном уже существует!"})
+            message = "Ваш код для регистрации в QFIT: "
+        elif code_type == "login":
+            if len(User.objects.filter(phone=phone)) == 0:
+                return Response({"error": "Телефон не найден!"})
+            message = "Ваш код для входа в QFIT: "
+        else:
+            return Response({"error": "Нужно передать параметр code_type. Это либо login либо register"})
         # Выслать код
         another_verification = VerificationPhone.objects.filter(phone=phone).first()
-        verification_phone = None
-        if not another_verification:
-            verification_phone = VerificationPhone.objects.create(phone=phone)
-            verification_phone.generate_code()
-        else:
-            verification_phone = another_verification
-        message = "Ваш код для регистрации в QFIT: " + verification_phone.code
+        if another_verification:
+            another_verification.delete()
+
+        verification_phone = VerificationPhone.objects.create(phone=phone)
+        verification_phone.generate_code()
+        
+        message += verification_phone.code
         send_sms(phone, message)
         return Response({"success": True})
+
+class CheckCode(APIView):
+    permission_classes = (IsAuthenticated,)
+    def get(self, request):
+        return Response({"error": request.method + " method not allowed!"})
+    def post(self, request):
+        code = None
+        phone = None
+        code_type = None
+        try:
+            code = int(request.POST["code"])
+            phone = request.POST["phone"]
+            code_type = request.POST{"code_type"}
+        except:
+            return Response({"error": "Не передан один из параметров: code, phone, code_type"})
+        
+        verification_phone = VerificationPhone.objects.filter(phone=phone, code=code).first()
+        if not verification_phone:
+            return Response({"error": "Неправильный код!"})
+        verification_phone.delete()
+        user = User.objects.filter(phone=phone).first()
+        if code_type == "login":
+            return Response({"success": True, "user":{
+                "id": user.id,
+                "phone": user.phone,
+                "role": user.role.name,
+                "avatar": user.avatar.url,
+                "ref_code": user.ref_code,
+                "bonuses": user.bonuses,
+                "email": user.email,
+                "name": user.name,
+                "sex": user.sex
+            }})
+        elif code_type == "register":
+            return Response({"success": True})    
+        
+        
+            
 
 class Register(APIView):
     permission_classes = (IsAuthenticated,)
     def get(self, request):
         return Response({"error": request.method + " method not allowed!"})
     def post(self, request):
-        phone = request.POST["phone"]
-        code = None
+        phone = None
+        name = None
+        email = None
+        sex = None
         try:
-            code = request.POST["code"]
+            phone = request.POST["phone"]
+            name = request.POST["name"]
+            email = request.POST["email"]
+            sex = request.POST["sex"]
         except:
-            pass
+            return Response({"error": "Не передан один из параметров: name, email, sex, phone"})
         
-        if len(User.objects.filter(phone=phone)) > 0:
-            return Response({"error": "User with this phone already exist!"})
-        
-        if code:
-            verification_phone = VerificationPhone.objects.filter(phone=phone, code=code).first()
-            if not verification_phone:
-                return Response({"error": "Неправильный код"})
-            users = User.objects.filter(phone=phone)
-            if len(users) > 0:
-                return Response({"success": True, "user_id": users.first().id})
-            user = User.objects.create(phone=phone)
-            user.save()
-            return Response({"success": True, "user_id": user.id})
-        return Response({"error": "Неправильный код"})
-
-class EndRegistration(APIView):
-    permission_classes = (IsAuthenticated,)
-    def get(self, request):
-        return Response({"error": request.method + " method not allowed!"})
-    def post(self, request):
-        name = request.POST["name"]
-        user_id = int(request.POST["user_id"])
-        email = request.POST["email"]
-        sex = request.POST["sex"]#no
-        
-        user = User.objects.filter(id=user_id).first()
-        if not user:
-            return Response({"error": "User with this id not found!"})
-        user.email = email
-        user.name = name
-        user.sex = sex
+        user = User.objects.create(phone=phone, name=name, email=email, sex=sex)
         user.save()
-        VerificationPhone.objects.filter(phone=user.phone).first().delete()
-
-        return Response({"success": True})
+        return Response({"success": True, "user":{
+            "id": user.id,
+            "phone": user.phone,
+            "ref_code": user.ref_code,
+            "bonuses": user.bonuses,
+            "email": user.email,
+            "name": user.name,
+            "sex": user.sex
+        }})
 
 class Login(APIView):
     permission_classes = (IsAuthenticated,)
@@ -358,32 +391,20 @@ class Login(APIView):
         return Response({"error": request.method + " method not allowed!"})
     def post(self, request):
         phone = request.POST["phone"]
+        
         users = User.objects.filter(phone=phone)
         if len(users) == 0:
             return Response({"error": "Неверный номер телефона!"})        
         user = users.first()
-        acnother_verification = VerificationPhone.objects.filter(phone=phone)
-        if acnother_verification:
-            acnother_verification.delete()
-
-        verification_phone = VerificationPhone.objects.create(phone=phone)
-        verification_phone.generate_code()
-        message = "Ваш код для входа в QFIT: " + verification_phone.code
-        send_sms(phone, message)
-        return Response({
-            "success": True,
-            "user_id": user.id,
-        }) 
-
-class EndLogin(APIView):
-    def get(self, request):
-        return Response({"error": request.method + " method not allowed!"})
-    def post(self, request):
-        user_id = int(request.POST["user_id"])
-        code = request.POST["code"]
-        user = User.objects.filter(id=user_id).first()
-        if not user:
-            return Response({"error": "Пользователя с таким id не найдено!"})
+        
+        if not code:
+            verification_phone = VerificationPhone.objects.create(phone=phone)
+            verification_phone.generate_code()
+            message = "Ваш код для входа в QFIT: " + verification_phone.code
+            send_sms(phone, message)
+            return Response({
+                "success": True,
+            }) 
         verification_phone = VerificationPhone.objects.filter(phone=user.phone, code=code).first()
         if not verification_phone:
             return Response({"error": "Неправильный код!"})
@@ -393,10 +414,16 @@ class EndLogin(APIView):
             "user":{
                 "id": user.id,
                 "phone": user.phone,
-                "role_id": user.role.id,
                 "role": user.role.name,
+                "avatar": user.avatar.url,
+                "ref_code": user.ref_code,
+                "bonuses": user.bonuses,
+                "email": user.email,
+                "name": user.name,
+                "sex": user.sex
             },
         })
+
 
 class BookTime(APIView):
     permission_classes = (IsAuthenticated,)
