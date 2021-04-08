@@ -329,7 +329,7 @@ class CheckCode(APIView):
         try:
             code = int(request.POST["code"])
             phone = request.POST["phone"]
-            code_type = request.POST{"code_type"}
+            code_type = request.POST["code_type"]
         except:
             return Response({"error": "Не передан один из параметров: code, phone, code_type"})
         
