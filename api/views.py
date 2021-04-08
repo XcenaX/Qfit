@@ -385,46 +385,6 @@ class Register(APIView):
             "sex": user.sex
         }})
 
-class Login(APIView):
-    permission_classes = (IsAuthenticated,)
-    def get(self, request):
-        return Response({"error": request.method + " method not allowed!"})
-    def post(self, request):
-        phone = request.POST["phone"]
-        
-        users = User.objects.filter(phone=phone)
-        if len(users) == 0:
-            return Response({"error": "Неверный номер телефона!"})        
-        user = users.first()
-        
-        if not code:
-            verification_phone = VerificationPhone.objects.create(phone=phone)
-            verification_phone.generate_code()
-            message = "Ваш код для входа в QFIT: " + verification_phone.code
-            send_sms(phone, message)
-            return Response({
-                "success": True,
-            }) 
-        verification_phone = VerificationPhone.objects.filter(phone=user.phone, code=code).first()
-        if not verification_phone:
-            return Response({"error": "Неправильный код!"})
-        verification_phone.delete()
-        return Response({
-            "success": True,
-            "user":{
-                "id": user.id,
-                "phone": user.phone,
-                "role": user.role.name,
-                "avatar": user.avatar.url,
-                "ref_code": user.ref_code,
-                "bonuses": user.bonuses,
-                "email": user.email,
-                "name": user.name,
-                "sex": user.sex
-            },
-        })
-
-
 class BookTime(APIView):
     permission_classes = (IsAuthenticated,)
     def get(self, request):
