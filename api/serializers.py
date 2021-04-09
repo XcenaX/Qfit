@@ -222,7 +222,7 @@ class ServiceSerializer(serializers.ModelSerializer):
 
 class CompanySerializer(serializers.ModelSerializer):    
     owner = UserField(many=False, read_only=False)
-    services = ServiceField(many=True, read_only=False, required=False)
+    services = ServiceSerializer(many=True, read_only=False, required=False)
     class Meta:
         model = Company
         fields = [ "id", "name", "owner", "address", "latitude", "longitude", "services", "qr_url"]

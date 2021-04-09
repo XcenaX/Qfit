@@ -44,7 +44,7 @@ class User(models.Model):
     friends = models.ManyToManyField("User", null=True, blank=True)
     email = models.TextField(default="")
     name = models.TextField(default="")
-    sex = models.TextField(default="")
+    sex = models.TextField(default="")#no
     def __str__(self):
         return self.phone
 
