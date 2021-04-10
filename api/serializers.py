@@ -225,7 +225,7 @@ class CompanySerializer(serializers.ModelSerializer):
     services = ServiceSerializer(many=True, read_only=False, required=False)
     class Meta:
         model = Company
-        fields = [ "id", "name", "owner", "address", "latitude", "longitude", "services", "qr_url"]
+        fields = [ "id", "name", "owner", "address", "latitude", "longitude", "services", "qr_url", "description"]
 
     def create(self, validated_data):
         company = Company.objects.create(

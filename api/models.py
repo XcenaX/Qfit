@@ -210,6 +210,7 @@ class Company(models.Model):
     longitude = models.DecimalField(decimal_places=14, max_digits=16, blank=True, null=True)
     services = models.ManyToManyField(Service, null=True, blank=True)
     all_bonuses = models.IntegerField(default=0)
+    description = models.TextField(default="")
     def __str__(self):
         return self.name
 
