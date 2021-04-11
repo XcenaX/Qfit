@@ -11,5 +11,15 @@ import json
 import time
 from django.utils import timezone
 
-for user in User.objects.all():
+from apscheduler.schedulers.blocking import BlockingScheduler
+
+sched = BlockingScheduler()
+
+@sched.scheduled_job('cron', month='1-12', day='1st', hour='0')
+def scheduled_job():
+    for user in User.objects.all():
     user.give_bonuses()
+
+sched.start()
+
+
