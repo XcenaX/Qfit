@@ -52,7 +52,8 @@ class User(models.Model):
     def give_bonuses(self):
         for friend in self.friends.all():
             friend.bonuses += self.month_bonuses//10
-            friend.save()    
+            friend.save()  
+        self.month_bonuses = 0  
 
     def generate_ref_code(self):
         ref_code_length = 8
