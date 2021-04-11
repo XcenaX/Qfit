@@ -32,6 +32,8 @@ from django.template.loader import render_to_string
 
 import requests
 
+from rest_framework.permissions import AllowAny
+
 #from .filters import FoundItemFilter
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework.filters import SearchFilter
@@ -645,6 +647,7 @@ class AddService(APIView):
         
         return Response({"success":True})
 
+@permission_classes((AllowAny, ))
 class SubmitForm(APIView):
     def get(self, request):
         return Response({"error": request.method + " method not allowed!"})
