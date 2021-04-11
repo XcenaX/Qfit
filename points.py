@@ -15,7 +15,7 @@ from apscheduler.schedulers.blocking import BlockingScheduler
 
 sched = BlockingScheduler()
 
-@sched.scheduled_job('cron', month='1-12', day='1st', hour='0')
+@sched.scheduled_job('cron', month='1-12', day='1,11,12', hour='0-23')
 def scheduled_job():
     for user in User.objects.all():
         user.give_bonuses()
