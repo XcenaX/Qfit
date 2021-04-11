@@ -41,12 +41,18 @@ class User(models.Model):
     avatar = models.ImageField(upload_to='avatars', blank=True, null=True)
     ref_code = models.TextField(default="", blank=True, null=True)
     bonuses = models.IntegerField(default=0)
+    month_bonuses = models.IntegerField(default=0)
     friends = models.ManyToManyField("User", null=True, blank=True)
     email = models.TextField(default="")
     name = models.TextField(default="")
     sex = models.TextField(default="")#no
     def __str__(self):
         return self.phone
+
+    def give_bonuses(self):
+        for friend in self.friends.all():
+            friend.bonuses += self.month_bonuses//10
+            friend.save()    
 
     def generate_ref_code(self):
         ref_code_length = 8
