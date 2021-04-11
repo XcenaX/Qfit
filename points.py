@@ -18,7 +18,9 @@ sched = BlockingScheduler()
 @sched.scheduled_job('cron', month='1-12', day='1st', hour='0')
 def scheduled_job():
     for user in User.objects.all():
-    user.give_bonuses()
+        user.give_bonuses()
+        print(user.name)
+    
 
 sched.start()
 
