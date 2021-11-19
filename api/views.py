@@ -410,7 +410,7 @@ class AddTelegramFriend(APIView):
         current_user.save()
         friend.save()
         
-        return Response({"success": True})
+        return Response({"success": True, "friend": friend.name})
 
 class CardData(APIView):
     permission_classes = (IsAuthenticated,)  
