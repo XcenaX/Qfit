@@ -5,6 +5,7 @@
     <head>
         <script src="{%static 'js/jquery.min.js'%}"></script>
         <link rel="stylesheet" type="text/css" href="{%static 'css/alertify/alertify.min.css'%}">
+        <link rel="stylesheet" type="text/css" href="{%static 'fonts/montserrat_family.css'%}">
         <link rel="stylesheet" type="text/css" href="{%static 'css/alertify/themes/default.min.css'%}">
         <link rel="shortcut icon" href="{%static 'img/logo.png'%}" type="image/x-icon">
         <link rel="stylesheet" href="{%static 'css/root.css'%}">
@@ -38,7 +39,15 @@
         <div class="mobile-title">Версия для телефона не доступна!</div>
     </div>
     <body>
+        <!-- The core Firebase JS SDK is always required and must be listed first -->
+        <script src="https://www.gstatic.com/firebasejs/8.4.1/firebase-app.js"></script>
 
+        <!-- TODO: Add SDKs for Firebase products that you want to use
+            https://firebase.google.com/docs/web/setup#available-libraries -->
+        <!-- <script src="https://www.gstatic.com/firebasejs/8.4.1/firebase-analytics.js"></script>
+        <script src="https://www.gstatic.com/firebasejs/8.4.1/firebase-storage.js"></script>
+        <script src="{%static 'js/firebase.js'%}"></script> -->
+        
        
         <div class="bg_image1 hide-on-mobile"></div>
         <div class="bg_image2 hide-on-mobile"></div>
@@ -52,7 +61,7 @@
                         <a href="{%url 'adminpanel:book'%}">Брони</a>
                     </div>
                     <div class="sidebar-option {%block services%}{%endblock%}">
-                        <a href="{%url 'adminpanel:services'%}">Список услуг и графики</a>
+                        <a href="{%url 'adminpanel:services'%}">Настройки клуба</a>
                     </div>
                     <div class="sidebar-option {%block history%}{%endblock%}">
                         <a href="{%url 'adminpanel:history'%}">История</a>
@@ -60,6 +69,7 @@
                     <div class="sidebar-option {%block support%}{%endblock%}">
                         <a href="{%url 'adminpanel:support'%}">Помощь и связь</a>
                     </div>
+                    
                     <div class="sidebar-option bottom">
                         <form action="{%url 'adminpanel:logout'%}" method="POST">{%csrf_token%}
                             <button type="submit">Выйти</button>    

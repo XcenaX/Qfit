@@ -1,0 +1,45 @@
+{% load inlinecss %}
+{% inlinecss "css/sidebar.css" %}
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <meta name="viewport" content="width=\, initial-scale=1.0">
+        <title>Document</title>
+        <style>
+            table {
+                border-collapse: collapse;
+                border-spacing: 0;
+            }
+        </style>
+    </head>
+    <body>
+        <div class="scrollable">
+            <table id="table">
+                <tr class="head">
+                    <th>Пользователь</th>
+                    <th>Телефон</th>
+                    <th>Тренировки</th>
+                    <th>Минуты</th>
+                    <th>Очки</th>
+                </tr>
+                {%if not top%}
+                    <tr>
+                        <td colspan="5">За это время никто не занимался!</td>
+                    </tr>
+                {%endif%}
+                {%for user in top%}
+                    <tr>
+                        <td>{{user.user.name}}  {{user.user.second_name}}</td>
+                        <td>{{user.user.phone}}</td>
+                        <td>{{user.count}}</td>
+                        <td>{{user.minutes}}</td>
+                        <td>{{user.points}}</td>
+                    </tr>
+                {%endfor%}
+            </table>
+        </div>
+    </body>
+</html>
+{% endinlinecss %}

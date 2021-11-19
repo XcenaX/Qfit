@@ -15,4 +15,5 @@ from django.conf import settings
 def send_email(content, subject, email_to):
     email_from = settings.EMAIL_HOST_USER
     recipient_list = [email_to]
-    send_mail( subject, content, email_from, recipient_list )
+    
+    send_mail( subject, content, email_from, recipient_list, html_message=content)

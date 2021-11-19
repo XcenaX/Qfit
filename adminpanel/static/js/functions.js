@@ -9,10 +9,18 @@ function get_token(){
             if(data["error"]){
                 console.log(data["error"]);
             }else{
-                console.log(data);
                 token = data["token"];
+                console.log(token);
             }
         }
     });
     return token;
+}
+
+function get_current_date(){
+    var today = new Date();
+    var date = today.getFullYear()+'_'+(today.getMonth()+1)+'_'+today.getDate();
+    var time = today.getHours() + "_" + today.getMinutes() + "_" + today.getSeconds() + "_" + today.getMilliseconds();
+    var dateTime = date+'_'+time;
+    return dateTime;
 }

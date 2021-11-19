@@ -108,28 +108,27 @@ def services(request):
     if not user:
         return redirect(reverse("adminpanel:login"))
     company = user.company
-    services = company.services.all()
+    
     service_categories = ServiceCategory.objects.all()
-    return render(request, "services.html", {
+    return render(request, "settings.html", {
         "current_user": user,
         "company": company,
-        "services": services,
         "days_of_week": DAYS_OF_WEEK,
         "service_categories": service_categories,
+        "tags": ServiceCategory.objects.all()
     })
 
 def book(request):
-    current_timers = Timer.objects.filter(is_confirmed=False)
-    accepted_timers = Timer.objects.filter(is_confirmed=True)
     current_user = get_current_user(request)
     if not current_user:
         return redirect(reverse("adminpanel:login"))
+    current_timers = Timer.objects.filter(company=current_user.company).order_by("book_date")
     return render(request, "book.html", {
         "current_timers": current_timers,
-        "accepted_timers": accepted_timers,
         "current_user": current_user,
         "company": current_user.company,
     })
+
 
 def history(request):
     current_user = get_current_user(request)

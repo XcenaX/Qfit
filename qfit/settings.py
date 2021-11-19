@@ -9,28 +9,69 @@ https://docs.djangoproject.com/en/3.1/topics/settings/
 For the full list of settings and their values, see
 https://docs.djangoproject.com/en/3.1/ref/settings/
 """
-
+import dj_database_url
 from pathlib import Path
 import os
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
-
+SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+SECURE_SSL_REDIRECT = True
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/3.1/howto/deployment/checklist/
 
-# SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = '#978&=68%$b-d8bjju03nif-kv%25!g4tzk$69f0$!#zt9-a%o'
-TWILIO_CODE = "b0364caf537a960f348a1c5b53caa543"
+
+# SECURITY WARNING: keep the secret key used in production secret!      
+TWILIO_TOKEN = "bfbc0c6b73d4be04c4d8e2fbfb1d71d7"
+TWILIO_SID = "ACd12b484cc904de712838e872dc8c8647"
+TWILIO_PHONE = "+12178292574"
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
+TEST_ACCOUNT_PHONES = ["+70000000000", "80000000000", "+77013198419", "+77011242693", "+70000000001"]
+
 ALLOWED_HOSTS = ["*"]
 
+SMSC_LOGIN = "XcenaX"
+SMSC_PASSWORD = "Qfit1973"
+SMSC_URL = "https://smsc.kz/sys/send.php"
 
+MOBIZON_URL = "https://api.mobizon.kz/service/message/sendsmsmessage"
+MOBIZON_API_KEY = "kz2bba912670ea3ebc21c463d6b2ac518e4efe585b10c78e05dc954c6f8f92a24798a5"
+MOBIZON_DOMAIN = "api.mobizon.kz"
+
+CLOUD_PAYMENTS_API_TOKEN = ""
+
+
+HIDDEN_CLUBS_LIST = [9, 58, 62]
+
+# ----Yandex s3----
+DEFAULT_FILE_STORAGE = 'yandex_s3_storage.ClientDocsStorage'  # path to file we created before
+YANDEX_BUCKET_NAME = 'qfitstorage'
+AWS_ACCESS_KEY_ID = "y1Ylvh3ZjqZ8F9L7fP9G"
+AWS_SECRET_ACCESS_KEY = "UwyK7t9-ZTyVGP8qpMW-5Z2DA7HBLag9-XB6tDIU"
+AWS_S3_ENDPOINT_URL = 'https://storage.yandexcloud.net'
+AWS_S3_REGION_NAME = 'storage'
+
+# YANDEX_KEY_ID = "ajem5cgaag9fc34bt9pc"
+# YANDEX_SECRET_KEY = "AQVN1isgpUEvYMi-pyz3m4E6V099xP2knbLNa7NX"
+# YANDEX_BUCKET = "qfitstorage"
 # Application definition
 
+config = {
+    "apiKey": "AIzaSyAl1JocYyMaUaT_YaLxVYxNTj",
+    "authDomain": "qfitadminfiles.firebaseapp.com",
+    "projectId": "qfitadminfiles",
+    "storageBucket": "qfitadminfiles.appspot.com",
+    "messagingSenderId": "599986010502",
+    "appId": "1:599986010502:web:a8023a90ad043987cd1407",
+    "measurementId": "G-BHBTLKJ5XV",
+    "databaseURL": ""
+}
+
 INSTALLED_APPS = [
+    "whitenoise.runserver_nostatic",
     'api.apps.ApiConfig',
     'adminpanel.apps.AdminpanelConfig',
     'django.contrib.admin',
@@ -43,6 +84,8 @@ INSTALLED_APPS = [
     "django_filters",
     "channels",
     'rest_framework.authtoken',
+    'storages',
+    "django_inlinecss",
 ]
 
 MIDDLEWARE = [
@@ -53,6 +96,7 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    "whitenoise.middleware.WhiteNoiseMiddleware",
 ]
 
 ROOT_URLCONF = 'qfit.urls'
@@ -146,7 +190,19 @@ DATABASES = {
         'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
     }
 }
-
+# DATABASES = {
+#     'default': {
+#         'ENGINE': 'django.db.backends.postgresql_psycopg2',
+#         'NAME': 'postgresql-pointy-31123',
+#         'USER': 'ijzjwpuhgzleiw',
+#         'PASSWORD': '30f9668d48fa13b9e6de3f7aaa4ae38e88a47e7b02841da22070c65960597371',
+#         'HOST': 'ec2-52-19-170-215.eu-west-1.compute.amazonaws.com',
+#         'PORT': '5432',
+#         'ATOMIC_REQUESTS': True
+#     }
+# }
+db_from_env = dj_database_url.config(conn_max_age=600)
+DATABASES['default'].update(db_from_env)
 
 # Password validation
 # https://docs.djangoproject.com/en/3.1/ref/settings/#auth-password-validators
@@ -180,21 +236,40 @@ USE_L10N = True
 
 USE_TZ = False
 
+HOST_URL = "https://qfitadmin.com"
 
 CORS_ORIGIN_ALLOW_ALL = True 
 CORS_ALLOW_CREDENTIALS = True
 
+STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
+
 STATIC_URL = '/static/'
-#STATIC_ROOT = "/home/c/cp70116/Qfit/static/"
-STATIC_ROOT = os.path.join(BASE_DIR, 'static')
+
+STATIC_ROOT = os.path.join(BASE_DIR, 'adminpanel/static')
 
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 MEDIA_URL = '/media/'
 
+# AWS_ACCESS_KEY_ID = 'AKIAIT2Z5TDYPX3ARJBA'
+# AWS_SECRET_ACCESS_KEY = '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'
+# AWS_STORAGE_BUCKET_NAME = 'sibtc-static'
+# AWS_S3_CUSTOM_DOMAIN = '%s.s3.amazonaws.com' % AWS_STORAGE_BUCKET_NAME
+# AWS_S3_OBJECT_PARAMETERS = {
+#     'CacheControl': 'max-age=86400',
+# }
+# AWS_LOCATION = 'static'
+
+# STATICFILES_DIRS = [
+#     os.path.join(BASE_DIR, 'static'),
+# ]
+# STATIC_URL = 'https://%s/%s/' % (AWS_S3_CUSTOM_DOMAIN, AWS_LOCATION)
+# STATICFILES_STORAGE = 'storages.backends.s3boto3.S3Boto3Storage'
+
 
 EMAIL_HOST = "smtp.gmail.com"
 EMAIL_HOST_USER = "qrfit.info@gmail.com"
-EMAIL_HOST_PASSWORD = 'qfit1973'
+EMAIL_HOST_PASSWORD = 'qfitMAIL1'
 EMAIL_PORT = 587
 EMAIL_USE_TLS = True
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+DEFAULT_FROM_EMAIL = 'qrfit.info@gmail.com'

@@ -8,7 +8,6 @@
 {%block main%}active{%endblock%}
 
 {% block content %}
-	
         <div class="wrap">
             <div class="content-title">
                 Сейчас тренируются
@@ -20,25 +19,26 @@
                 <table id="table">
                     <tr class="head">
                     <th>Телефон</th>
+                    <th>Имя</th>
+                    <th>Дата старта</th>
                     <th>Время старта</th>
-                    <th>Услуга</th>
+                    
                     
                     </tr>
                     {%if not timers%}
                         <tr id="no_train">
-                            <td colspan="3">В данный момент никто не занимается</td>
+                            <td colspan="4">В данный момент никто не занимается</td>
                         </tr>
                     {%endif%}
                     {%for timer in timers%}
                         <tr id="timer{{timer.id}}">
                             <td>{{timer.user.phone}}</td>
-                            <td>{{timer.start_time|date:'Y-m-d H:i'}}</td>
-                            <td>{{timer.service.category.name}}</td>
+                            <td>{{timer.user.name}}</td>
+                            <td>{{timer.start_time|date:'Y-m-d'}}</td>
+                            <td>{{timer.start_time|date:'H:i'}}</td>
+                            
                         </tr>
-                        <script>
-                            var start_date = Date("{{timer.start_date}}");
-                            console.log(start_date);
-                        </script>
+                        
                     {%endfor%}
                 </table>
             </div>
@@ -69,7 +69,7 @@
                     if($("tr").length == 1){
                         const empty_tr = document.createElement("tr");
                         empty_tr.id = "no_train";
-                        empty_tr.innerHTML = `<td colspan="3">В данный момент никто не занимается</td>`;
+                        empty_tr.innerHTML = `<td colspan="4">В данный момент никто не занимается</td>`;
                         document.getElementById('table').appendChild(empty_tr);
                     }
                 }
@@ -85,7 +85,7 @@
                     tr.innerHTML = `
                     <td>`+data["timer_user"]+`</td>
                     <td>`+data["timer_start"].slice(0, -3)+`</td>
-                    <td>`+data["timer_service"]+`</td>
+                    
                     `;
 
                     document.getElementById('table').appendChild(tr);

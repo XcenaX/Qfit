@@ -2,7 +2,7 @@
 {% load static %}
 
 {%block styles %}
-    
+    <link rel="stylesheet" href="{%static 'css/history.css'%}">
 {% endblock %}
 
 {%block history%}active{%endblock%}
@@ -14,13 +14,16 @@
                 История посещений
             </div>
             <div class="content-under-title">
-                {{company.name}}
+                <div class="name">{{company.name}}</div>
+                <a href="{%url 'download_excel' company.id%}" download class="download-excel"></a>
+                
             </div>
             <div class="scrollable">
                 <table id="table">
                     <tr class="head">
                     <th>Телефон</th>
-                    <th>Услуга</th>
+                    <th>Имя</th>
+                    <th>Дата брони</th>
                     <th>Время старта</th>
                     <th>Время окончания</th>
                     <th>Кол-во минут</th>
@@ -28,15 +31,16 @@
                     </tr>
                     {%if not histories%}
                         <tr>
-                            <td colspan="6" id="empty_tr">В данный момент никто не посещал занятия</td>
+                            <td colspan="7" id="empty_tr">В данный момент никто не посещал занятия</td>
                         </tr>
                     {%endif%}
                     {%for history in histories%}
                         <tr id="history{{history.id}}">
                             <td>{{history.user.phone}}</td>
-                            <td>{{history.service.category.name}}</td>
-                            <td>{{history.start_time|date:'Y-m-d H:i'}}</td>
-                            <td>{{history.end_time|date:'Y-m-d H:i'}}</td>
+                            <td>{{history.user.name}}</td>
+                            <td>{{history.start_time|date:'Y-m-d'}}</td>
+                            <td>{{history.start_time|date:'H:i'}}</td>
+                            <td>{{history.end_time|date:'H:i'}}</td>
                             <td>{{history.minutes}} минуты</td>
                             <td>{{history.bill}} тг</td>
                         </tr>
@@ -68,7 +72,6 @@
                     tr.innerHTML = `
 
                     <td>`+data["phone"]+`</td>
-                    <td>`+data["service"]+`</td>
                     <td>`+data["start_time"].slice(0, -3)+`</td>
                     <td>`+data["end_time"].slice(0, -3)+`</td>
                     <td>`+data["minutes"]+` минуты</td>
@@ -86,6 +89,27 @@
             console.log('data', data);
             
         };
+    </script>
+    <script>
+        function download_excel(){
+            $.ajax({
+                url: "/api/download_excel/", 
+                type: "POST",
+                data:{
+                    "company": {{current_user.company.id}}
+                },                
+                success: function(data){
+                    if(data["error"]){
+                        console.log(data["error"]);
+                    }
+                    else{
+                        var static_url = data["url"];
+                        $("#download-url")[0].href = static_url;
+                        $("#download-url")[0].click();
+                    }                    
+                }
+            });
+        }
     </script>
 {%endblock%}
 

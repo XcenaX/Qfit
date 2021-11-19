@@ -75,6 +75,7 @@ def get_current_user(request):
         return None
     user = AdminUser.objects.filter(id=int(request.session["user"])).first()
     return user
+
 class make_incrementor(object):
     count = 0
 
@@ -88,3 +89,4 @@ class make_incrementor(object):
     def res(self):
         self.count = 0
         return self.count
+

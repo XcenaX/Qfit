@@ -4,15 +4,24 @@
     height: 70px;
     background: #FFFFFF;
     margin-top: 41px;
+    margin-bottom: 41px;
+}
+
+label.add_main_image {
+    position: absolute;
+    z-index: 1;
+    width: 200px;
+    height: 200px;
+    cursor: pointer;
 }
 
 .service-title, .service-title:focus{
-    font-family: Montserrat;
+    font-family: Montserrat Regular;
     font-style: normal;
     font-weight: 600;
     font-size: 30px;
     line-height: 37px;
-    color: #570499;
+    color: #B8B8B8;
     /* padding: 15px; */
     margin-left: 56px;
     margin-top: 15px;
@@ -21,7 +30,7 @@
     border: none;
     outline: none;
     width: auto;
-    border-bottom: 1px solid gray;
+    /* border-bottom: 1px solid gray; */
     background: white;
 }
 
@@ -69,6 +78,8 @@
     border-radius: 50%;
     background-image: url("/static/img/add.svg");
     vertical-align: middle;
+    margin-right: 25px;
+    cursor: pointer;
 }
 
 .image-trash{
@@ -80,6 +91,7 @@
     background-image: url("/static/img/trash.svg");
     background-repeat: no-repeat;
     background-size: contain;
+    cursor: pointer;
 }
 
 .image-form{
@@ -110,13 +122,13 @@ input[type="time"]::-webkit-calendar-picker-indicator {
 
 .schedule-block{
     width: 90%;
-    height: 65px;
+    height: 90px;
     padding-left: 56px;
     clear: both;
 }
 
 .schedule-title{
-    font-family: Montserrat;
+    font-family: Montserrat Regular;
     font-style: normal;
     font-weight: 600;
     font-size: 24px;
@@ -137,7 +149,7 @@ input[type="time"]::-webkit-calendar-picker-indicator {
 }
 
 .day-of-week-up{
-    font-family: Montserrat;
+    font-family: Montserrat Regular;
     font-style: normal;
     font-weight: 600;
     font-size: 20px;
@@ -179,7 +191,7 @@ table.timelines {
 }
 
 .timelines .day-of-week-down{
-    font-family: Montserrat;
+    font-family: Montserrat Regular;
     font-style: normal;
     font-weight: 600;
     font-size: 16px;
@@ -205,7 +217,7 @@ table.timelines {
 }
 
 .add-timeline-title {
-    font-family: Montserrat;
+    font-family: Montserrat Regular;
     font-style: normal;
     font-weight: 600;
     font-size: 20px;
@@ -218,7 +230,7 @@ table.timelines {
 }
 
 .day-of-week-down{
-    font-family: Montserrat;
+    font-family: Montserrat Regular;
     font-style: normal;
     font-weight: 600;
     font-size: 16px;
@@ -258,7 +270,7 @@ table.timelines {
     float: right;
     padding: 20px;
     color: white;
-    font-family: Montserrat;
+    font-family: Montserrat Regular;
     font-style: normal;
     font-weight: 600;
     font-size: 20px;
@@ -284,14 +296,35 @@ table.timelines {
     padding: 20px;
 }
 
+.service-main-image{
+    width: 200px;
+    height: 200px;
+    border-radius: 10px;
+}
+
 .service-image{
     width: 75px;
     height: 75px;
+    border-radius: 0px;
 }
 
 .service-image-block{
     width: 75px;
     height: 75px;
+    margin-right: 25px;
+    margin-bottom: 25px;
+    display: inline-block;
+    position: relative;
+}
+
+.tag-block {
+    height: auto;
+    display: inline-block;
+}
+
+.service-image-main-block{
+    width: 200px;
+    height: 200px;
     margin-left: 25px;
     display: inline-block;
     position: relative;
@@ -337,12 +370,76 @@ table .day-of-week-down {
     padding: 0;
     border: 1px solid #FFFFFF;
     padding: 10px;
-    font-family: Montserrat;
+    font-family: Montserrat Regular;
     font-style: normal;
     font-weight: normal;
     font-size: 15px;
     line-height: 18px;
 }
+
+.tags-block {
+    width: 100%;
+    height: auto;
+    text-align: left;
+}
+
+.tags-block .tag {
+    display: inline-block;
+    margin-right: 40px;
+    /* font-size: 25px; */
+    font-weight: 500;
+    font-size: 20px;
+    line-height: 24px;
+    color: #D14BA0;
+    margin-bottom: 30px;
+}
+
+.round {
+    position: relative;
+    width: 32px;
+    height: 32px;
+    display: inline-block;
+    vertical-align: top;
+  }
+  
+  .round label {
+    background-color: #fff;
+    border: 1px solid #ccc;
+    border-radius: 50%;
+    cursor: pointer;
+    height: 28px;
+    left: 0;
+    position: absolute;
+    top: 0;
+    width: 28px;
+  }
+  
+  .round label:after {
+    border: 2px solid #fff;
+    border-top: none;
+    border-right: none;
+    content: "";
+    height: 6px;
+    left: 7px;
+    opacity: 0;
+    position: absolute;
+    top: 8px;
+    transform: rotate(-45deg);
+    width: 12px;
+  }
+  
+  .round input[type="checkbox"] {
+    visibility: hidden;
+  }
+  
+  .round input[type="checkbox"]:checked + label {
+    background-color: #D14BA0;
+    border-color: #D14BA0;
+  }
+  
+  .round input[type="checkbox"]:checked + label:after {
+    opacity: 1;
+  }
 
 @media(max-width:1800px){
     .day-of-week-up{

@@ -4,7 +4,7 @@ from adminpanel.models import *
 
 admin.site.register(User)
 admin.site.register(Company)
-admin.site.register(Service)
+#admin.site.register(Service)
 admin.site.register(Schedule)
 admin.site.register(Role)
 admin.site.register(Timer)

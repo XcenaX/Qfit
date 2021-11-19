@@ -33,7 +33,7 @@
 .login-form form input{
     background: #F4F4F4;
     color: #570499;
-    font-family: Montserrat;
+    font-family: Montserrat Regular;
     font-style: normal;
     font-weight: 600;
     font-size: 25px;
@@ -48,7 +48,7 @@
 
 .login-title{
     margin-bottom: 60px;
-    font-family: Montserrat;
+    font-family: Montserrat Regular;
     font-style: normal;
     font-weight: 600;
     font-size: 40px;
@@ -63,7 +63,7 @@
     text-align: center;
     padding-top: 14px;
     padding-bottom: 14px;
-    font-family: Montserrat;
+    font-family: Montserrat Regular;
     font-style: normal;
     font-weight: 600;
     font-size: 25px;
