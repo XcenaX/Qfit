@@ -506,7 +506,7 @@ class UpdateTelegramIdByPhone(APIView):
 class TopUsersByPoints(APIView):    
     def get(self, request):
         places = 10                
-        telegram_id = get_parameter(request, "telegram_id")
+        telegram_id = int(get_parameter(request, "telegram_id"))
         all_users = User.objects.order_by("-points") 
         users = UserSerializer(all_users[:places], many=True).data
         count = 1
