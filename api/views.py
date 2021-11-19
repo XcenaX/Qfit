@@ -59,7 +59,7 @@ import xlrd, xlwt
 
 API_KEY = "AIzaSyCcHCB9lx35nurrIOy2KvphPIvmsflB4mE"
 
-from adminpanel.modules.functions import broadcast_ticks, get_current_user
+from adminpanel.modules.functions import broadcast_ticks, get_current_user, get_parameter
 from .modules.functions import *
 
 LIMIT_FRIENDS = 2
@@ -505,9 +505,18 @@ class UpdateTelegramIdByPhone(APIView):
 
 class TopUsersByPoints(APIView):    
     def get(self, request):
-        places = 10                    
-        users = UserSerializer(User.objects.order_by("-points")[:places], many=True).data                       
-        return Response(users)        
+        places = 10                
+        telegram_id = get_parameter(request, "telegram_id")
+        all_users = User.objects.order_by("-points") 
+        users = UserSerializer(all_users[:places], many=True).data
+        count = 1
+        you = None
+        for user in all_users:
+            if user.telegram_id == telegram_id:
+                you = user
+                break
+            count+=1
+        return Response({"users":users, "place": count, "name": you.name, "points": you.points})        
     def post(self, request):
         return Response({"error": request.method + " method not allowed!"})
 
