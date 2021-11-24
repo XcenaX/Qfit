@@ -53,6 +53,7 @@ urlpatterns = [
     path("submit_question_form/", views.SubmitQuestionForm.as_view(), name="submit_question_form"),
     path("submit_review/", views.SubmitReview.as_view(), name="submit_review"),
     path("download_excel/<int:id>", views.DownloadExcel.as_view(), name="download_excel"),
+    path("download_all_excel", views.DownloadAllExcel.as_view(), name="download_all_excel"),    
     path("add_friend/", views.AddFriend.as_view(), name="add_friend"),
     path("add_telegram_friend/", views.AddTelegramFriend.as_view(), name="add_telegram_friend"),    
     path('token/', api_views.obtain_auth_token, name='api-token-auth'),

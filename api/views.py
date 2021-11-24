@@ -957,6 +957,37 @@ def xls_to_response(xls, fname):
     xls.save(response)
     return response
 
+def create_all_history_excel():
+    file_name = 'all_history_excel.xls'
+    y = 0
+    workbook = xlwt.Workbook()
+    worksheet = workbook.add_sheet("History")
+    for company in Company.objects.all():
+        trains = FinishedTrain.objects.filter(company=company)        
+        worksheet.write(y,0, company.name)
+        y+=1
+        worksheet.write(y,0, "Телефон")
+        worksheet.write(y,1, "Имя")
+        worksheet.write(y,2, "Дата брони")
+        worksheet.write(y,3, "Время старта")
+        worksheet.write(y,4, "Время окончания")
+        worksheet.write(y,5, "Кол-во минут")
+        worksheet.write(y,6, "Оплата")
+        y+=1
+        for train in trains:
+            book_date = str(train.start_time.year) + "-" + str(train.start_time.month) + "-" + str(train.start_time.day)
+            start_time = str(train.start_time.hour) + ":" + str(train.start_time.minute) + ":" + str(train.start_time.second)
+            end_time = str(train.end_time.hour) + ":" + str(train.end_time.minute) + ":" + str(train.end_time.second)
+            worksheet.write(y,0, train.user.phone)
+            worksheet.write(y,1, train.user.name + " " + train.user.second_name)
+            worksheet.write(y,2, book_date)
+            worksheet.write(y,3, start_time)
+            worksheet.write(y,4, end_time)
+            worksheet.write(y,5, train.minutes)
+            worksheet.write(y,6, train.bill)
+            y+=1
+    return workbook, file_name
+
 def create_history_excel(company):
     trains = FinishedTrain.objects.filter(company=company)
     file_name = 'history_excel'+str(company.id)+'.xls'
@@ -1005,6 +1036,15 @@ class DownloadExcel(APIView):
         return xls_to_response(workbook, fname)
         #return Response({"url": static_url}, status=200)
     def post(self, request, id):        
+        return Response({"error": request.method + " method not allowed!"})
+
+@permission_classes((AllowAny, ))
+class DownloadAllExcel(APIView):
+    def get(self, request):        
+        workbook, fname = create_all_history_excel()
+        return xls_to_response(workbook, fname)
+        #return Response({"url": static_url}, status=200)
+    def post(self, request):        
         return Response({"error": request.method + " method not allowed!"})
         
 
