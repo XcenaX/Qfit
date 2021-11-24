@@ -986,6 +986,7 @@ def create_all_history_excel():
             worksheet.write(y,5, train.minutes)
             worksheet.write(y,6, train.bill)
             y+=1
+        y+=1
     return workbook, file_name
 
 def create_history_excel(company):
