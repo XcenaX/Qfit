@@ -67,7 +67,7 @@ class User(models.Model):
     last_numbers = models.TextField(blank=True, null=True, default="")
     card_token = models.TextField(blank=True, null=True, default="")
     card_type = models.TextField(blank=True, null=True, default="")
-    city = models.ForeignKey(City, on_delete=models.CASCADE, blank=True, null=True, default=City.objects.all()[0].id)
+    #city = models.ForeignKey(City, on_delete=models.CASCADE, blank=True, null=True, default=City.objects.all()[0].id)
     
     def is_currently_training(self):
         user = User.objects.filter(id=self.id).first()
