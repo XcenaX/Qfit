@@ -33,6 +33,27 @@ class RoleField(serializers.RelatedField):
             'Obj does not exist.'
             )
 
+class CityField(serializers.RelatedField):
+    queryset = City.objects.all()
+    def to_representation(self, value):
+        return value.name
+    def to_internal_value(self, data):
+        try:
+            try:
+                return City.objects.get(name=data)
+            except KeyError:
+                raise serializers.ValidationError(
+                    'id is a required field.'
+                )
+            except ValueError:
+                raise serializers.ValidationError(
+                    'id must be an integer.'
+                )
+        except Type.DoesNotExist:
+            raise serializers.ValidationError(
+            'Obj does not exist.'
+            )
+
 class RoleSerializer(serializers.ModelSerializer):    
     class Meta:
         model = Role
@@ -80,11 +101,12 @@ class TelegramFriendSerializer(serializers.ModelSerializer):
 
 class UserSerializer(serializers.ModelSerializer):
     role = RoleField(many=False, read_only=False, required=False)
+    city = CityField(many=False, read_only=False, required=False)
     friends = FriendSerializer(many=True, read_only=False, required=False)
     telegram_friends = TelegramFriendSerializer(many=True, read_only=False, required=False)
     class Meta:
         model = User
-        fields = ("id", "role", "sex", "phone", "email", "avatar", "name", "second_name", "ref_code", "bonuses", "telegram_id", "points", "trains_count", "avarage_train_time", "max_train_time", "most_visited_club", "telegram_friends", "friends", "is_currently_training", "current_train")
+        fields = ("id", "city", "role", "sex", "phone", "email", "avatar", "name", "second_name", "ref_code", "bonuses", "telegram_id", "points", "trains_count", "avarage_train_time", "max_train_time", "most_visited_club", "telegram_friends", "friends", "is_currently_training", "current_train")
     
     def create(self, validated_data):        
         try:
