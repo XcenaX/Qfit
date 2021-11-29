@@ -308,6 +308,7 @@ class Company(models.Model):
     tags = models.ManyToManyField(ServiceCategory, null=True, blank=True)
     days = models.ManyToManyField(Schedule, null=True, blank=True)
     contacts = models.TextField(blank=True, null=True, default="")
+    city = models.ForeignKey(City, on_delete=models.CASCADE, blank=True, null=True, default=City.objects.all()[0].id)
     def get_price(self, day, time):
         
         current_day = self.days.filter(day=day).first()

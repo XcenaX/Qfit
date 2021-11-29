@@ -120,6 +120,7 @@ class CompanyViewSet(viewsets.ModelViewSet):
         tags = self.request.query_params.get('tagName', None)
         tag = self.request.query_params.get('tag', None)
         contacts = self.request.query_params.get('contacts', None)
+        city = self.request.query_params.get('city', None)
 
         queryset = self.queryset.exclude(id__in=HIDDEN_CLUBS_LIST)
         if tag is not None:  
@@ -139,6 +140,12 @@ class CompanyViewSet(viewsets.ModelViewSet):
                     query |= Q(tags=current_tag)
             if contacts is not None:
                 query |= Q(contacts__icontains=contacts)
+            if city is not None:
+                try:
+                    city = City.objects.get(name=city)
+                    query |= Q(city=city)
+                except:
+                    pass                
             queryset = queryset.filter(query)
 
         return queryset.exclude(id__in=HIDDEN_CLUBS_LIST)

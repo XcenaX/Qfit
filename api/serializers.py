@@ -289,9 +289,10 @@ class CompanySerializer(serializers.ModelSerializer):
     days = serializers.SerializerMethodField("get_days")
     images = MyImageSerializer(many=True, read_only=False, required=False)
     tags = ServiceCategorySerializer(many=True, read_only=False, required=False)
+    city = CityField(many=False, read_only=False, required=False)
     class Meta:
         model = Company
-        fields = [ "id", "name", "owner", "address", "latitude", "longitude", "qr_url", "description", "days", "images", "avatar", "tags", "all_bonuses", "avarage_price", "rating", "contacts"]
+        fields = [ "id", "city", "name", "owner", "address", "latitude", "longitude", "qr_url", "description", "days", "images", "avatar", "tags", "all_bonuses", "avarage_price", "rating", "contacts"]
 
     def get_days(self, instance):
         days = instance.days.all().order_by("day")
@@ -302,8 +303,13 @@ class CompanySerializer(serializers.ModelSerializer):
         address = None
         latitude = None
         longitude = None
+        city = None
         try:
             owner = validated_data['owner']
+        except:
+            pass
+        try:
+            city = validated_data['city']
         except:
             pass
         try:
@@ -342,7 +348,12 @@ class CompanySerializer(serializers.ModelSerializer):
             company.latitude = latitude
         if longitude:
             company.longitude = longitude
-
+        if city:
+            try:
+                city = City.objects.get(name=city)
+                company.city = city
+            except:
+                pass
         company.save()
     
         return company
