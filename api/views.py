@@ -197,6 +197,18 @@ class RoleViewSet(viewsets.ModelViewSet):
         except:
             raise Http404
 
+class CityViewSet(viewsets.ModelViewSet):
+    queryset = City.objects.all()
+    serializer_class = CitySerializer
+    permission_classes = (IsAuthenticated,)
+    def retrieve(self, request, pk=None):
+        queryset = City.objects.all()
+        try:
+            city = City.objects.get(id=pk)
+            serializer = CitySerializer(city)
+            return Response(serializer.data)
+        except:
+            raise Http404
 
 class ScheduleViewSet(viewsets.ModelViewSet):
     queryset = Schedule.objects.all()

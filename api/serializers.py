@@ -59,6 +59,11 @@ class RoleSerializer(serializers.ModelSerializer):
         model = Role
         fields = ("id", "name")
 
+class CitySerializer(serializers.ModelSerializer):    
+    class Meta:
+        model = City
+        fields = ("id", "name")
+
 
 class MyImageSerializer(serializers.ModelSerializer):    
     class Meta:
