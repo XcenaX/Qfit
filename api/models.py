@@ -43,6 +43,12 @@ class Role(models.Model):
     def __str__(self):
         return self.name
 
+class City(models.Model):
+    name = models.TextField(default='') 
+
+    def __str__(self):
+        return self.name
+
 class User(models.Model):
     phone = models.TextField(default='')
     role = models.ForeignKey(Role, on_delete=models.CASCADE, blank=True, null=True, default=Role.objects.get(name="user").id)
@@ -61,6 +67,7 @@ class User(models.Model):
     last_numbers = models.TextField(blank=True, null=True, default="")
     card_token = models.TextField(blank=True, null=True, default="")
     card_type = models.TextField(blank=True, null=True, default="")
+    #city = models.ForeignKey(City, on_delete=models.CASCADE, blank=True, null=True, default=City.objects.all()[0].id)
     
     def is_currently_training(self):
         user = User.objects.filter(id=self.id).first()
