@@ -2,7 +2,10 @@ from django.contrib import admin
 from .models import *
 from adminpanel.models import *
 
-admin.site.register(User)
+class UserAdmin(admin.ModelAdmin):    
+    search_fields = ['phone', 'name']
+
+admin.site.register(User, UserAdmin)
 admin.site.register(Company)
 #admin.site.register(Service)
 admin.site.register(Schedule)
